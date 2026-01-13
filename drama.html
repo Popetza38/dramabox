@@ -69,11 +69,6 @@
                         <button class="btn btn-primary" id="watchBtn" onclick="watchFirstEpisode()">
                             <span class="btn-icon"><i data-lucide="play"></i></span> รับชมตอนที่ 1
                         </button>
-                        <button class="btn btn-secondary" id="continueBtn" onclick="continueWatching()"
-                            style="display: none;">
-                            <span class="btn-icon"><i data-lucide="play-circle"></i></span> <span
-                                id="continueText">ดูต่อ</span>
-                        </button>
                         <button class="btn btn-secondary" id="favoriteBtn" onclick="toggleFavorite()">
                             <span class="btn-icon"><i data-lucide="heart" id="favoriteIcon"></i></span> <span
                                 id="favoriteText">เพิ่มรายการโปรด</span>
@@ -195,29 +190,11 @@
             lucide.createIcons();
         }
 
-        // Check and show continue watching button
-        function checkContinueWatching() {
-            const continueData = storage.getContinueWatching(bookId);
-            if (continueData && continueData.episodeIndex > 0) {
-                document.getElementById('continueBtn').style.display = 'inline-flex';
-                document.getElementById('continueText').textContent = `ดูต่อ ตอน ${continueData.episodeIndex + 1}`;
-            }
-        }
-
-        // Continue watching from saved progress
-        function continueWatching() {
-            const continueData = storage.getContinueWatching(bookId);
-            if (continueData) {
-                window.location.href = `watch.html?id=${bookId}&ep=${continueData.episodeIndex}`;
-            }
-        }
-
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (typeof bookId !== 'undefined' && bookId) {
                     updateFavoriteButton(storage.isFavorite(bookId));
-                    checkContinueWatching();
                 }
             }, 1000);
         });

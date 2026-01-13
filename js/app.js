@@ -24,9 +24,6 @@ async function init() {
     // Update Hero section with Home data (Carousel mode)
     setupHeroCarousel(homeData);
 
-    // Load Continue Watching section
-    loadContinueWatching();
-
     // Load Favorites section
     loadFavorites();
 
@@ -289,44 +286,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-/**
- * Load Continue Watching section from storage
- */
-function loadContinueWatching() {
-    const history = storage.getWatchHistory();
-    const section = document.getElementById('continueSection');
-    const carousel = document.getElementById('continueCarousel');
 
-    if (!history || history.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-
-    section.style.display = 'block';
-    carousel.innerHTML = history.slice(0, 10).map(item => `
-        <div class="drama-card continue-card" onclick="window.location.href='watch.html?id=${item.dramaId}&ep=${item.episodeIndex}'">
-            <div class="drama-card-poster">
-                <img src="${item.cover || utils.placeholderImage}" alt="${item.dramaName}" 
-                     onerror="this.src='${utils.placeholderImage}'">
-                <div class="watch-progress">
-                    <div class="watch-progress-bar" style="width: ${Math.min((item.progress / 3600) * 100, 100)}%"></div>
-                </div>
-                <span class="episode-badge"><i data-lucide="play" class="icon-xs"></i> ตอน ${item.episodeIndex + 1}</span>
-                <div class="drama-card-overlay">
-                    <div class="drama-card-play"><i data-lucide="play"></i></div>
-                </div>
-            </div>
-            <div class="drama-card-info">
-                <div class="drama-card-title">${item.dramaName}</div>
-                <div class="drama-card-meta">
-                    <span><i data-lucide="tv" class="icon-xs"></i> ${item.totalEpisodes || '?'} ตอน</span>
-                </div>
-            </div>
-        </div>
-    `).join('');
-
-    if (window.lucide) lucide.createIcons();
-}
 
 /**
  * Load Favorites section from storage
