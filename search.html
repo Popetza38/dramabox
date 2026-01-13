@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>ค้นหาละคร - DramaBox</title>
+    <meta name="description" content="ค้นหาละครที่คุณชอบที่ DramaBox สตรีมฟรีคุณภาพดีที่สุด">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><path d='M20 45 L80 45 L80 75 L20 75 Z' fill='white'/><path d='M20 45 L80 45 L70 30 L30 30 Z' fill='white' opacity='0.8'/></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar scrolled" id="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="logo-icon"><i data-lucide="clapperboard"></i></span>
+                <span class="logo">DramaBox</span>
+            </a>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">หน้าหลัก</a></li>
+            <li><a href="search.html" class="nav-link active">ค้นหา</a></li>
+            <li><a href="search.html?type=trending" class="nav-link">กำลังฮิต</a></li>
+            <li><a href="search.html?type=latest" class="nav-link">ล่าสุด</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <a href="index.html" style="font-size: 1.25rem;"><i data-lucide="home"></i></a>
+        </div>
+    </nav>
+
+    <!-- Search Page -->
+    <main class="search-page">
+        <!-- Search Hero -->
+        <section class="search-hero">
+            <h1 class="search-hero-title" id="pageTitle"><i data-lucide="search"
+                    style="width: 32px; height: 32px; vertical-align: middle;"></i> ค้นหาละคร</h1>
+            <form class="search-form" onsubmit="return handleSearch(event)">
+                <span class="search-form-icon"><i data-lucide="search"></i></span>
+                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อละคร..." autocomplete="off">
+            </form>
+        </section>
+
+        <!-- Popular Searches (shown when no search) -->
+        <section class="popular-searches" id="popularSection">
+            <h3 class="popular-title"><i data-lucide="trending-up" class="icon-sm"></i> คำค้นหายอดนิยม</h3>
+            <div class="popular-tags" id="popularTags">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Quick Category Links -->
+            <div class="category-links"
+                style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;">
+                <a href="search.html?type=trending" class="category-btn"><i data-lucide="trending-up"
+                        class="icon-xs"></i> กำลังฮิต</a>
+                <a href="search.html?type=latest" class="category-btn"><i data-lucide="clock" class="icon-xs"></i>
+                    ล่าสุด</a>
+                <a href="search.html?type=foryou" class="category-btn"><i data-lucide="heart" class="icon-xs"></i>
+                    แนะนำ</a>
+                <a href="search.html?type=vip" class="category-btn"><i data-lucide="crown" class="icon-xs"></i> VIP</a>
+            </div>
+        </section>
+
+        <!-- All Categories Section (shown when no search on main explore page) -->
+        <section class="hidden" id="allCategoriesSection" style="padding: 0 2rem;">
+            <!-- Trending Preview -->
+            <div class="category-preview" style="margin-bottom: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="color: var(--text-primary);"><i data-lucide="trending-up" class="icon-sm"></i>
+                        กำลังฮิตตอนนี้</h3>
+                    <a href="search.html?type=trending" class="see-all-link">ดูทั้งหมด <i data-lucide="chevron-right"
+                            class="icon-xs"></i></a>
+                </div>
+                <div class="results-grid" id="trendingPreview"></div>
+            </div>
+
+            <!-- Latest Preview -->
+            <div class="category-preview" style="margin-bottom: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="color: var(--text-primary);"><i data-lucide="clock" class="icon-sm"></i> เพิ่งเข้าใหม่
+                    </h3>
+                    <a href="search.html?type=latest" class="see-all-link">ดูทั้งหมด <i data-lucide="chevron-right"
+                            class="icon-xs"></i></a>
+                </div>
+                <div class="results-grid" id="latestPreview"></div>
+            </div>
+
+            <!-- For You Preview -->
+            <div class="category-preview" style="margin-bottom: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="color: var(--text-primary);"><i data-lucide="heart" class="icon-sm"></i> แนะนำสำหรับคุณ
+                    </h3>
+                    <a href="search.html?type=foryou" class="see-all-link">ดูทั้งหมด <i data-lucide="chevron-right"
+                            class="icon-xs"></i></a>
+                </div>
+                <div class="results-grid" id="foryouPreview"></div>
+            </div>
+        </section>
+
+        <!-- Search Results -->
+        <section class="search-results hidden" id="resultsSection">
+            <h2 class="search-results-title" id="resultsTitle">ผลการค้นหา</h2>
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Category Results (for type=trending, etc) -->
+        <section class="search-results hidden" id="categorySection">
+            <h2 class="search-results-title" id="categoryTitle">ละคร</h2>
+            <div class="results-grid" id="categoryGrid">
+                <!-- Category dramas will be loaded here -->
+            </div>
+
+            <!-- Load More Button -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="load-more-btn hidden" id="loadMoreBtn" onclick="loadMore()">
+                    <i data-lucide="arrow-down-circle"></i> โหลดเพิ่มเติม
+                </button>
+            </div>
+        </section>
+
+        <!-- No Results -->
+        <section class="hidden" id="noResults" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;"><i data-lucide="search-x"
+                    style="width: 64px; height: 64px;"></i></div>
+            <h3 style="margin-bottom: 0.5rem;">ไม่พบผลลัพธ์</h3>
+            <p style="color: var(--text-muted);">ลองค้นหาคำอื่นหรือเลือกดูละครยอดนิยม</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand"><i data-lucide="clapperboard"></i> DramaBox</div>
+                <p class="footer-text">
+                    สตรีมมิ่งละครที่ดีที่สุด รวบรวมละครครบทุกแนว
+                    รับชมละครกำลังฮิต ล่าสุด และแนะนำเฉพาะคุณ
+                </p>
+            </div>
+            <div>
+                <h4 class="footer-title">ค้นหา</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?type=trending" class="footer-link">กำลังฮิต</a></li>
+                    <li><a href="search.html?type=latest" class="footer-link">ล่าสุด</a></li>
+                    <li><a href="search.html?type=foryou" class="footer-link">แนะนำ</a></li>
+                    <li><a href="search.html?type=vip" class="footer-link">VIP</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">หมวดหมู่</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?q=รักโรแมนติก" class="footer-link">รักโรแมนติก</a></li>
+                    <li><a href="search.html?q=แอคชั่น" class="footer-link">แอคชั่น</a></li>
+                    <li><a href="search.html?q=ตลก" class="footer-link">ตลก</a></li>
+                    <li><a href="search.html?q=ดราม่า" class="footer-link">ดราม่า</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">เพิ่มเติม</h4>
+                <ul class="footer-links">
+                    <li><a href="#" class="footer-link">เกี่ยวกับเรา</a></li>
+                    <li><a href="#" class="footer-link">ติดต่อเรา</a></li>
+                    <li><a href="#" class="footer-link">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#" class="footer-link">นโยบายความเป็นส่วนตัว</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 DramaBox. Powered by DramaBox API.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/search.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

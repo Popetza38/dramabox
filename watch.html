@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>รับชมละคร - DramaBox</title>
+    <meta name="description" content="รับชมละครที่ DramaBox สตรีมฟรีคุณภาพดีที่สุด">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><path d='M20 45 L80 45 L80 75 L20 75 Z' fill='white'/><path d='M20 45 L80 45 L70 30 L30 30 Z' fill='white' opacity='0.8'/></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background: #000;
+        }
+
+        .player-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .player-header.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .player-title {
+            flex: 1;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .player-title span {
+            color: var(--primary);
+        }
+
+        .video-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            position: relative;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            max-height: calc(100vh - 100px);
+            background: #000;
+        }
+
+        .episode-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .episode-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .episode-nav-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .episode-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .episode-info {
+            text-align: center;
+        }
+
+        .episode-current {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .error-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 200;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .error-overlay.show {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .error-message {
+            color: var(--text-muted);
+            max-width: 400px;
+        }
+
+        /* Custom Video Controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+            padding: 2rem;
+            padding-bottom: 5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 101;
+            pointer-events: none;
+        }
+
+        .video-controls>* {
+            pointer-events: auto;
+        }
+
+        .video-wrapper:hover .video-controls,
+        .video-wrapper.show-controls .video-controls {
+            opacity: 1;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: height 0.2s ease;
+        }
+
+        .progress-container:hover {
+            height: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            border-radius: 3px;
+            position: relative;
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+        }
+
+        .progress-handle {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .progress-container:hover .progress-handle {
+            opacity: 1;
+        }
+
+        .controls-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #fff;
+        }
+
+        .controls-left,
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .control-btn:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .time-display {
+            font-size: 0.875rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .speed-control {
+            position: relative;
+        }
+
+        .speed-btn {
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .speed-options {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+            min-width: 80px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .speed-options.show {
+            display: flex;
+        }
+
+        .speed-option {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .speed-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .speed-option.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Download Button */
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+
+        .download-btn i {
+            width: 18px;
+            height: 18px;
+        }
+
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .episode-nav-btn span {
+                display: none;
+            }
+
+            .player-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .episode-nav {
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Error Overlay -->
+    <div class="error-overlay" id="errorOverlay">
+        <div class="error-icon"><i data-lucide="frown" style="width: 64px; height: 64px;"></i></div>
+        <h2 class="error-title">วิดีโอไม่พร้อมใช้งาน</h2>
+        <p class="error-message" id="errorMessage">ขออภัย ไม่สามารถโหลดวิดีโอนี้ได้ในขณะนี้</p>
+        <a href="index.html" class="btn btn-primary"><i data-lucide="home"></i> กลับหน้าหลัก</a>
+    </div>
+
+    <!-- Player Container -->
+    <div class="player-container" id="playerContainer">
+        <!-- Header -->
+        <header class="player-header" id="playerHeader">
+            <a href="#" class="back-btn" id="backBtn">
+                <i data-lucide="arrow-left"></i> ย้อนกลับ
+            </a>
+            <div class="player-title">
+                <span id="dramaTitle">กำลังโหลด...</span> - <span id="episodeTitle">ตอนที่ 1</span>
+            </div>
+            <div style="width: 100px;"></div>
+        </header>
+
+        <!-- Video -->
+        <div class="video-wrapper" id="videoWrapper">
+            <video id="videoPlayer" autoplay playsinline preload="auto">
+                เบราว์เซอร์ของคุณไม่รองรับวิดีโอ HTML5
+            </video>
+
+            <!-- Custom Controls -->
+            <div class="video-controls" id="videoControls">
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-handle"></div>
+                    </div>
+                </div>
+
+                <div class="controls-main">
+                    <div class="controls-left">
+                        <button class="control-btn" id="playPauseBtn">
+                            <i data-lucide="play" id="playIcon"></i>
+                        </button>
+                        <button class="control-btn" id="rewindBtn">
+                            <i data-lucide="rotate-ccw"></i>
+                        </button>
+                        <button class="control-btn" id="forwardBtn">
+                            <i data-lucide="rotate-cw"></i>
+                        </button>
+                        <div class="time-display">
+                            <span id="currentTime">00:00</span> / <span id="duration">00:00</span>
+                        </div>
+                    </div>
+
+                    <div class="controls-right">
+                        <div class="speed-control">
+                            <button class="control-btn speed-btn" id="speedBtn">1x</button>
+                            <div class="speed-options" id="speedOptions">
+                                <div class="speed-option" data-speed="0.5">0.5x</div>
+                                <div class="speed-option active" data-speed="1">1x</div>
+                                <div class="speed-option" data-speed="1.25">1.25x</div>
+                                <div class="speed-option" data-speed="1.5">1.5x</div>
+                                <div class="speed-option" data-speed="2">2x</div>
+                            </div>
+                        </div>
+                        <div class="quality-selector">
+                            <button class="control-btn quality-btn" id="qualityBtn" onclick="toggleQualityMenu()">
+                                <i data-lucide="settings-2"></i>
+                                <span id="qualityLabel">HD</span>
+                            </button>
+                            <div class="quality-options" id="qualityOptions">
+                                <div class="quality-option" data-quality="360" onclick="setVideoQuality('360')">360p
+                                </div>
+                                <div class="quality-option" data-quality="480" onclick="setVideoQuality('480')">480p
+                                </div>
+                                <div class="quality-option active" data-quality="720" onclick="setVideoQuality('720')">
+                                    720p HD</div>
+                                <div class="quality-option" data-quality="1080" onclick="setVideoQuality('1080')">1080p
+                                    FHD</div>
+                            </div>
+                        </div>
+                        <button class="download-btn" id="downloadBtn" onclick="downloadVideo()">
+                            <i data-lucide="download"></i>
+                            <span>ดาวน์โหลด</span>
+                        </button>
+                        <button class="control-btn" id="muteBtn">
+                            <i data-lucide="volume-2" id="volumeIcon"></i>
+                        </button>
+                        <button class="control-btn" id="fullscreenBtn">
+                            <i data-lucide="maximize" id="fullscreenIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Episode Navigation -->
+        <nav class="episode-nav" id="episodeNav">
+            <button class="episode-nav-btn" id="prevBtn" onclick="prevEpisode()">
+                <i data-lucide="chevron-left"></i> <span>ตอนก่อนหน้า</span>
+            </button>
+            <div class="episode-info">
+                <span id="episodeIndicator">ตอนที่ 1</span>
+                <div class="episode-current" id="episodeCurrent">จาก ? ตอน</div>
+            </div>
+            <button class="episode-nav-btn" id="nextBtn" onclick="nextEpisode()">
+                <span>ตอนถัดไป</span> <i data-lucide="chevron-right"></i>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand"><i data-lucide="clapperboard"></i> DramaBox</div>
+                <p class="footer-text">
+                    สตรีมมิ่งละครที่ดีที่สุด รวบรวมละครครบทุกแนว
+                    รับชมละครกำลังฮิต ล่าสุด และแนะนำเฉพาะคุณ
+                </p>
+            </div>
+            <div>
+                <h4 class="footer-title">ค้นหา</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?type=trending" class="footer-link">กำลังฮิต</a></li>
+                    <li><a href="search.html?type=latest" class="footer-link">ล่าสุด</a></li>
+                    <li><a href="search.html?type=foryou" class="footer-link">แนะนำ</a></li>
+                    <li><a href="search.html?type=vip" class="footer-link">VIP</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">หมวดหมู่</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?q=รักโรแมนติก" class="footer-link">รักโรแมนติก</a></li>
+                    <li><a href="search.html?q=แอคชั่น" class="footer-link">แอคชั่น</a></li>
+                    <li><a href="search.html?q=ตลก" class="footer-link">ตลก</a></li>
+                    <li><a href="search.html?q=ดราม่า" class="footer-link">ดราม่า</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">เพิ่มเติม</h4>
+                <ul class="footer-links">
+                    <li><a href="#" class="footer-link">เกี่ยวกับเรา</a></li>
+                    <li><a href="#" class="footer-link">ติดต่อเรา</a></li>
+                    <li><a href="#" class="footer-link">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#" class="footer-link">นโยบายความเป็นส่วนตัว</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 DramaBox. Powered by DramaBox API.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/watch.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

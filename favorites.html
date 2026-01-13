@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>รายการโปรด - DramaBox</title>
+    <meta name="description" content="รายการละครโปรดของคุณที่ DramaBox">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><path d='M20 45 L80 45 L80 75 L20 75 Z' fill='white'/><path d='M20 45 L80 45 L70 30 L30 30 Z' fill='white' opacity='0.8'/></svg>">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E50914">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar scrolled" id="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="logo-icon"><i data-lucide="clapperboard"></i></span>
+                <span class="logo">DramaBox</span>
+            </a>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">หน้าหลัก</a></li>
+            <li><a href="search.html" class="nav-link">ค้นหา</a></li>
+            <li><a href="search.html?type=trending" class="nav-link">กำลังฮิต</a></li>
+            <li><a href="favorites.html" class="nav-link active">รายการโปรด</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="สลับธีม">
+                <i data-lucide="moon" id="themeIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="padding: 100px 2rem 2rem; min-height: 100vh;">
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <h1 class="section-title">
+                <span class="section-title-icon"><i data-lucide="heart"></i></span> รายการโปรด
+            </h1>
+            <button onclick="clearAllFavorites()" class="clear-btn" id="clearBtn" style="display: none;">
+                <i data-lucide="trash-2"></i> ล้างทั้งหมด
+            </button>
+        </div>
+
+        <!-- Favorites Grid -->
+        <div class="results-grid" id="favoritesGrid">
+            <!-- Loading -->
+            <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 4rem;">
+                กำลังโหลดรายการโปรด...
+            </p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden" style="text-align: center; padding: 4rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">💔</div>
+            <h2 style="margin-bottom: 0.5rem;">ยังไม่มีรายการโปรด</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">เพิ่มละครที่ชอบโดยกดปุ่มหัวใจในหน้ารายละเอียดละคร
+            </p>
+            <a href="index.html" class="btn btn-primary">
+                <i data-lucide="home"></i> ไปหน้าหลัก
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand"><i data-lucide="clapperboard"></i> DramaBox</div>
+                <p class="footer-text">
+                    สตรีมมิ่งละครที่ดีที่สุด รวบรวมละครครบทุกแนว
+                </p>
+            </div>
+            <div>
+                <h4 class="footer-title">ลิงก์</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html" class="footer-link">หน้าหลัก</a></li>
+                    <li><a href="search.html" class="footer-link">ค้นหา</a></li>
+                    <li><a href="favorites.html" class="footer-link">รายการโปรด</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 DramaBox. Powered by DramaBox API.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadFavorites();
+        });
+
+        // Toggle theme
+        function toggleTheme() {
+            const newTheme = storage.toggleTheme();
+            document.getElementById('themeIcon').setAttribute('data-lucide', newTheme === 'dark' ? 'moon' : 'sun');
+            lucide.createIcons();
+        }
+
+        // Load favorites
+        function loadFavorites() {
+            const favorites = storage.getFavorites();
+            const grid = document.getElementById('favoritesGrid');
+            const emptyState = document.getElementById('emptyState');
+            const clearBtn = document.getElementById('clearBtn');
+
+            if (!favorites || favorites.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            clearBtn.style.display = 'flex';
+
+            grid.innerHTML = favorites.map(item => `
+                <div class="drama-card" onclick="window.location.href='drama.html?id=${item.dramaId}'" id="fav-${item.dramaId}">
+                    <div class="drama-card-poster">
+                        <img src="${item.cover || utils.placeholderImage}" alt="${item.dramaName}"
+                             onerror="this.src='${utils.placeholderImage}'">
+                        <button class="favorite-btn active" onclick="event.stopPropagation(); removeFavorite('${item.dramaId}')" title="ลบจากรายการโปรด">
+                            <i data-lucide="heart"></i>
+                        </button>
+                        <div class="drama-card-overlay">
+                            <div class="drama-card-play"><i data-lucide="play"></i></div>
+                        </div>
+                    </div>
+                    <div class="drama-card-info">
+                        <div class="drama-card-title">${item.dramaName}</div>
+                        <div class="drama-card-meta">
+                            <span><i data-lucide="tv" class="icon-xs"></i> ${item.totalEpisodes || '?'} ตอน</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Remove favorite
+        function removeFavorite(dramaId) {
+            storage.removeFavorite(dramaId);
+            document.getElementById(`fav-${dramaId}`)?.remove();
+
+            // Check if empty
+            const favorites = storage.getFavorites();
+            if (!favorites || favorites.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('clearBtn').style.display = 'none';
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: '💔 ลบจากรายการโปรดแล้ว',
+                timer: 1000,
+                showConfirmButton: false,
+                background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                color: '#fff'
+            });
+        }
+
+        // Clear all favorites
+        function clearAllFavorites() {
+            Swal.fire({
+                title: 'ล้างรายการโปรดทั้งหมด?',
+                text: 'การดำเนินการนี้ไม่สามารถย้อนกลับได้',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E50914',
+                cancelButtonColor: '#666',
+                confirmButtonText: '<i data-lucide="trash-2"></i> ล้างทั้งหมด',
+                cancelButtonText: 'ยกเลิก',
+                background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    storage.clearFavorites();
+                    loadFavorites();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ล้างแล้ว!',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                        color: '#fff'
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

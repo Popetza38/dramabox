@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>DramaBox - สตรีมมิ่งละครที่ดีที่สุด</title>
+    <meta name="description" content="รับชมละครล่าสุด กำลังฮิต และแนะนำสำหรับคุณที่ DramaBox สตรีมฟรีคุณภาพดีที่สุด">
+    <meta name="keywords" content="ละคร, สตรีมมิ่ง, ดูละคร, ละครไทย, ละครจีน, dramabox">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DramaBox - สตรีมมิ่งละครที่ดีที่สุด">
+    <meta property="og:description" content="รับชมละครล่าสุด กำลังฮิต และแนะนำสำหรับคุณที่ DramaBox">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><path d='M20 45 L80 45 L80 75 L20 75 Z' fill='white'/><path d='M20 45 L80 45 L70 30 L30 30 Z' fill='white' opacity='0.8'/></svg>">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DramaBox">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="logo-icon"><i data-lucide="clapperboard"></i></span>
+                <span class="logo">DramaBox</span>
+            </a>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">หน้าหลัก</a></li>
+            <li><a href="search.html" class="nav-link">ค้นหา</a></li>
+            <li><a href="search.html?type=trending" class="nav-link">กำลังฮิต</a></li>
+            <li><a href="search.html?type=latest" class="nav-link">ล่าสุด</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="สลับธีม">
+                <i data-lucide="moon" id="themeIcon"></i>
+            </button>
+            <a href="favorites.html" class="nav-icon-btn" title="รายการโปรด">
+                <i data-lucide="heart"></i>
+            </a>
+            <div class="search-container" id="searchContainer">
+                <button class="search-btn" onclick="toggleSearch()"><i data-lucide="search"></i></button>
+                <input type="text" class="search-input" id="navSearchInput" placeholder="ค้นหาละคร..."
+                    onkeypress="handleNavSearch(event)">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="heroSection">
+        <div class="hero-backdrop" id="heroBackdrop">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450'%3E%3Crect fill='%231a1a1a' width='800' height='450'/%3E%3Ctext x='400' y='225' fill='%23666' font-size='24' text-anchor='middle'%3EDramaBox%3C/text%3E%3C/svg%3E"
+                alt="ละครแนะนำ" id="heroImage">
+        </div>
+        <div class="hero-content">
+            <span class="hero-tag" id="heroTag">กำลังฮิต</span>
+            <h1 class="hero-title" id="heroTitle">กำลังโหลด...</h1>
+            <p class="hero-description" id="heroDescription"></p>
+            <div class="hero-meta" id="heroMeta">
+                <span><i data-lucide="tv" class="icon-sm"></i> <span id="heroEpisodes">0</span> ตอน</span>
+                <span><i data-lucide="eye" class="icon-sm"></i> <span id="heroHot">0</span> ยอดเข้าชม</span>
+            </div>
+            <div class="hero-actions">
+                <button class="btn btn-primary" onclick="watchHero()">
+                    <span class="btn-icon"><i data-lucide="play"></i></span> รับชมเลย
+                </button>
+                <button class="btn btn-secondary" onclick="viewHeroDetail()">
+                    <span class="btn-icon"><i data-lucide="info"></i></span> ดูรายละเอียด
+                </button>
+            </div>
+        </div>
+        <div class="hero-indicators" id="heroIndicators"></div>
+    </section>
+
+    <!-- Continue Watching Section (hidden if empty) -->
+    <section class="section" id="continueSection" style="display: none;">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="play-circle"></i></span> ดูต่อ
+            </h2>
+            <button onclick="clearWatchHistory()" class="clear-btn" title="ล้างประวัติ">
+                <i data-lucide="trash-2"></i>
+            </button>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('continue', -1)">❮</button>
+            <div class="carousel" id="continueCarousel">
+                <!-- Continue watching cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('continue', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- Favorites Section (hidden if empty) -->
+    <section class="section" id="favoritesSection" style="display: none;">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="heart"></i></span> รายการโปรด
+            </h2>
+            <a href="favorites.html" class="see-all">
+                ดูทั้งหมด <span><i data-lucide="chevron-right"></i></span>
+            </a>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('favorites', -1)">❮</button>
+            <div class="carousel" id="favoritesCarousel">
+                <!-- Favorites cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('favorites', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- Trending Section -->
+    <section class="section" id="trendingSection">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="trending-up"></i></span> กำลังฮิตตอนนี้
+            </h2>
+            <a href="search.html?type=trending" class="see-all">
+                ดูทั้งหมด <span><i data-lucide="chevron-right"></i></span>
+            </a>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('trending', -1)">❮</button>
+            <div class="carousel" id="trendingCarousel">
+                <!-- Drama cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('trending', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- Latest Section -->
+    <section class="section" id="latestSection">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="clock"></i></span> เพิ่งเข้าใหม่
+            </h2>
+            <a href="search.html?type=latest" class="see-all">
+                ดูทั้งหมด <span><i data-lucide="chevron-right"></i></span>
+            </a>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('latest', -1)">❮</button>
+            <div class="carousel" id="latestCarousel">
+                <!-- Drama cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('latest', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- For You Section -->
+    <section class="section" id="foryouSection">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="heart"></i></span> แนะนำสำหรับคุณ
+            </h2>
+            <a href="search.html?type=foryou" class="see-all">
+                ดูทั้งหมด <span><i data-lucide="chevron-right"></i></span>
+            </a>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('foryou', -1)">❮</button>
+            <div class="carousel" id="foryouCarousel">
+                <!-- Drama cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('foryou', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- VIP Section -->
+    <section class="section" id="vipSection">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-icon"><i data-lucide="crown"></i></span> VIP พิเศษ
+            </h2>
+            <a href="search.html?type=vip" class="see-all">
+                ดูทั้งหมด <span><i data-lucide="chevron-right"></i></span>
+            </a>
+        </div>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="scrollCarousel('vip', -1)">❮</button>
+            <div class="carousel" id="vipCarousel">
+                <!-- Drama cards will be loaded here -->
+            </div>
+            <button class="carousel-btn next" onclick="scrollCarousel('vip', 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand"><i data-lucide="clapperboard"></i> DramaBox</div>
+                <p class="footer-text">
+                    สตรีมมิ่งละครที่ดีที่สุด รวบรวมละครครบทุกแนว
+                    รับชมละครกำลังฮิต ล่าสุด และแนะนำเฉพาะคุณ
+                </p>
+            </div>
+            <div>
+                <h4 class="footer-title">ค้นหา</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?type=trending" class="footer-link">กำลังฮิต</a></li>
+                    <li><a href="search.html?type=latest" class="footer-link">ล่าสุด</a></li>
+                    <li><a href="search.html?type=foryou" class="footer-link">แนะนำ</a></li>
+                    <li><a href="search.html?type=vip" class="footer-link">VIP</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">หมวดหมู่</h4>
+                <ul class="footer-links">
+                    <li><a href="search.html?q=รักโรแมนติก" class="footer-link">รักโรแมนติก</a></li>
+                    <li><a href="search.html?q=แอคชั่น" class="footer-link">แอคชั่น</a></li>
+                    <li><a href="search.html?q=ตลก" class="footer-link">ตลก</a></li>
+                    <li><a href="search.html?q=ดราม่า" class="footer-link">ดราม่า</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">เพิ่มเติม</h4>
+                <ul class="footer-links">
+                    <li><a href="#" class="footer-link">เกี่ยวกับเรา</a></li>
+                    <li><a href="#" class="footer-link">ติดต่อเรา</a></li>
+                    <li><a href="#" class="footer-link">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#" class="footer-link">นโยบายความเป็นส่วนตัว</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 DramaBox. Powered by DramaBox API.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Toggle theme function
+        function toggleTheme() {
+            const newTheme = storage.toggleTheme();
+            updateThemeIcon(newTheme);
+            Swal.fire({
+                icon: 'success',
+                title: newTheme === 'dark' ? '🌙 โหมดกลางคืน' : '☀️ โหมดกลางวัน',
+                timer: 1000,
+                showConfirmButton: false,
+                background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                color: '#fff'
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+                lucide.createIcons();
+            }
+        }
+
+        // Update theme icon on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon(storage.getTheme());
+        });
+
+        // Clear watch history
+        function clearWatchHistory() {
+            Swal.fire({
+                title: 'ล้างประวัติการรับชม?',
+                text: 'การดำเนินการนี้ไม่สามารถย้อนกลับได้',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E50914',
+                cancelButtonColor: '#666',
+                confirmButtonText: 'ล้าง',
+                cancelButtonText: 'ยกเลิก',
+                background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    storage.clearWatchHistory();
+                    document.getElementById('continueSection').style.display = 'none';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ล้างแล้ว!',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
+                        color: '#fff'
+                    });
+                }
+            });
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ SW registered'))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
