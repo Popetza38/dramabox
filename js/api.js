@@ -4,7 +4,7 @@
  * API Docs: https://github.com/hndko/dramabox-rest-api-node
  */
 
-const API_BASE = ' https://apith-gjmy-git-main-popetza38s-projects.vercel.app/api';
+const API_BASE = ' https://apith-gjmy-git-main-popetza38s-projects.vercel.app/api/*';
 
 // Placeholder image as data URI (no external dependency)
 const PLACEHOLDER_IMG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"%3E%3Crect fill="%231a1a1a" width="200" height="300"/%3E%3Ctext x="100" y="150" fill="%23666" font-size="14" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
