@@ -92,24 +92,7 @@
         <div class="hero-indicators" id="heroIndicators"></div>
     </section>
 
-    <!-- Continue Watching Section (hidden if empty) -->
-    <section class="section" id="continueSection" style="display: none;">
-        <div class="section-header">
-            <h2 class="section-title">
-                <span class="section-title-icon"><i data-lucide="play-circle"></i></span> ดูต่อ
-            </h2>
-            <button onclick="clearWatchHistory()" class="clear-btn" title="ล้างประวัติ">
-                <i data-lucide="trash-2"></i>
-            </button>
-        </div>
-        <div class="carousel-container">
-            <button class="carousel-btn prev" onclick="scrollCarousel('continue', -1)">❮</button>
-            <div class="carousel" id="continueCarousel">
-                <!-- Continue watching cards will be loaded here -->
-            </div>
-            <button class="carousel-btn next" onclick="scrollCarousel('continue', 1)">❯</button>
-        </div>
-    </section>
+
 
     <!-- Favorites Section (hidden if empty) -->
     <section class="section" id="favoritesSection" style="display: none;">
@@ -284,34 +267,7 @@
             updateThemeIcon(storage.getTheme());
         });
 
-        // Clear watch history
-        function clearWatchHistory() {
-            Swal.fire({
-                title: 'ล้างประวัติการรับชม?',
-                text: 'การดำเนินการนี้ไม่สามารถย้อนกลับได้',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#E50914',
-                cancelButtonColor: '#666',
-                confirmButtonText: 'ล้าง',
-                cancelButtonText: 'ยกเลิก',
-                background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
-                color: '#fff'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    storage.clearWatchHistory();
-                    document.getElementById('continueSection').style.display = 'none';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ล้างแล้ว!',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        background: 'linear-gradient(145deg, #1e1e1e, #2d2d2d)',
-                        color: '#fff'
-                    });
-                }
-            });
-        }
+
 
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
