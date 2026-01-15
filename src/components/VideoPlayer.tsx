@@ -11,6 +11,7 @@ import {
     Download,
     Loader2,
     ChevronRight,
+    RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -74,6 +75,11 @@ export function VideoPlayer({
     const [showSkipOutro, setShowSkipOutro] = useState(false);
     const [hoverTime, setHoverTime] = useState<number | null>(null);
     const [hoverPosition, setHoverPosition] = useState(0);
+    const [rotation, setRotation] = useState(0);
+
+    const handleRotate = () => {
+        setRotation((prev) => (prev + 90) % 360);
+    };
 
     // Show/hide controls with timeout
     const resetControlsTimeout = useCallback(() => {
@@ -293,7 +299,8 @@ export function VideoPlayer({
                 ref={videoRef}
                 src={src}
                 poster={poster}
-                className="w-full h-full object-contain cursor-pointer"
+                className="w-full h-full object-contain cursor-pointer transition-transform duration-300"
+                style={{ transform: `rotate(${rotation}deg)` }}
                 onClick={handlePlayPause}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
@@ -449,6 +456,17 @@ export function VideoPlayer({
 
                     {/* Right Controls */}
                     <div className="flex items-center gap-2">
+                        {/* Rotate */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-white hover:bg-white/20"
+                            onClick={handleRotate}
+                            title="หมุนหน้าจอ"
+                        >
+                            <RotateCw className="w-5 h-5" />
+                        </Button>
+
                         {/* Download */}
                         <Button
                             variant="ghost"
