@@ -249,6 +249,16 @@ const Watch = () => {
             </div>
           </div>
 
+          {/* Synopsis / เรื่องย่อ */}
+          {drama?.introduction && (
+            <div className="bg-card rounded-2xl p-6 mb-6">
+              <h2 className="font-semibold text-lg mb-3">เรื่องย่อ</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {drama.introduction}
+              </p>
+            </div>
+          )}
+
           {/* Episode List */}
           <div className="bg-card rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">

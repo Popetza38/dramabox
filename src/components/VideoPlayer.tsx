@@ -16,6 +16,7 @@ import {
     Camera,
     Rewind,
     FastForward,
+    Cast,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -82,7 +83,6 @@ export function VideoPlayer({
     const [showControls, setShowControls] = useState(true);
     const [isBuffering, setIsBuffering] = useState(false);
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
-    const [showSkipIntro, setShowSkipIntro] = useState(false);
     const [showSkipOutro, setShowSkipOutro] = useState(false);
     const [hoverTime, setHoverTime] = useState<number | null>(null);
     const [hoverPosition, setHoverPosition] = useState(0);
@@ -91,6 +91,8 @@ export function VideoPlayer({
     const [quality, setQuality] = useState('auto');
     const [showSeekIndicator, setShowSeekIndicator] = useState<'left' | 'right' | null>(null);
     const [isPiP, setIsPiP] = useState(false);
+    const [isCasting, setIsCasting] = useState(false);
+    const [canCast, setCanCast] = useState(false);
     const lastTapRef = useRef<{ time: number; side: 'left' | 'right' } | null>(null);
 
     // Detect if on mobile device
@@ -186,9 +188,6 @@ export function VideoPlayer({
 
         setCurrentTime(video.currentTime);
         onTimeUpdate?.(video.currentTime, video.duration);
-
-        // Show skip intro button (within first skipIntroTime seconds)
-        setShowSkipIntro(video.currentTime < skipIntroTime && video.currentTime > 3);
 
         // Show skip outro button (within last skipOutroTime seconds)
         const timeRemaining = video.duration - video.currentTime;
@@ -384,6 +383,60 @@ export function VideoPlayer({
         };
     }, []);
 
+    // Cast handler using Remote Playback API
+    const handleCast = async () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        try {
+            // Check if Remote Playback API is available
+            if ('remote' in video) {
+                const remote = (video as any).remote;
+
+                if (isCasting) {
+                    // Stop casting
+                    await remote.cancelWatchAvailability();
+                    setIsCasting(false);
+                } else {
+                    // Start casting - prompt user to select device
+                    await remote.prompt();
+                }
+            } else {
+                // Fallback: Use experimental Web Share API or alert
+                alert('กรุณาใช้ Chrome บน Android หรือ Safari บน iOS เพื่อใช้งาน Cast');
+            }
+        } catch (error: any) {
+            if (error.name === 'NotSupportedError') {
+                alert('อุปกรณ์ไม่รองรับการ Cast');
+            } else if (error.name !== 'NotAllowedError') {
+                console.log('Cast failed:', error);
+            }
+        }
+    };
+
+    // Check if casting is available
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        // Check for Remote Playback API support
+        if ('remote' in video) {
+            const remote = (video as any).remote;
+
+            remote.watchAvailability((available: boolean) => {
+                setCanCast(available);
+            }).catch(() => {
+                // Remote playback not supported
+                setCanCast(false);
+            });
+
+            // Listen for connection state changes
+            remote.onconnecting = () => setIsCasting(false);
+            remote.onconnect = () => setIsCasting(true);
+            remote.ondisconnect = () => setIsCasting(false);
+        }
+    }, [src]);
+
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -496,16 +549,6 @@ export function VideoPlayer({
                 </button>
             )}
 
-            {/* Skip Intro Button */}
-            {showSkipIntro && (
-                <button
-                    onClick={handleSkipIntro}
-                    className="absolute bottom-24 right-4 px-4 py-2 bg-white/90 text-black font-medium rounded-lg hover:bg-white transition-colors flex items-center gap-2 shadow-lg"
-                >
-                    <SkipForward className="w-4 h-4" />
-                    ข้าม Intro
-                </button>
-            )}
 
             {/* Skip Outro / Next Episode Button */}
             {showSkipOutro && hasNextEpisode && (
@@ -682,6 +725,17 @@ export function VideoPlayer({
                             title="Picture-in-Picture"
                         >
                             <PictureInPicture2 className="w-5 h-5" />
+                        </Button>
+
+                        {/* Cast / Chromecast / Airplay */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`text-white hover:bg-white/20 ${isCasting ? 'bg-primary/30 text-primary' : ''}`}
+                            onClick={handleCast}
+                            title="Cast ไปยังทีวี"
+                        >
+                            <Cast className="w-5 h-5" />
                         </Button>
 
                         {/* Download */}
