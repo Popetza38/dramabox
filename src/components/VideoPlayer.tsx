@@ -524,7 +524,14 @@ export function VideoPlayer({
                 onPause={() => setIsPlaying(false)}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
-                onEnded={onEnded}
+                onEnded={() => {
+                    // Auto-play next episode when video ends
+                    if (hasNextEpisode && onNextEpisode) {
+                        onNextEpisode();
+                    } else {
+                        onEnded?.();
+                    }
+                }}
                 onWaiting={() => setIsBuffering(true)}
                 onPlaying={() => setIsBuffering(false)}
                 playsInline
