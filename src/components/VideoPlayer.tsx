@@ -141,16 +141,44 @@ export function VideoPlayer({
 
         // On mobile, auto-enter fullscreen when video starts playing
         if (isMobile && !document.fullscreenElement && containerRef.current) {
+            const container = containerRef.current;
+            const video = videoRef.current;
+
             try {
-                await containerRef.current.requestFullscreen();
-            } catch (error) {
-                // Fallback: try webkit fullscreen for iOS Safari
-                const video = videoRef.current;
-                if (video && (video as any).webkitEnterFullscreen) {
+                // Try standard Fullscreen API first
+                if (container.requestFullscreen) {
+                    await container.requestFullscreen();
+                } else if ((container as any).webkitRequestFullscreen) {
+                    // Safari on iOS/macOS
+                    await (container as any).webkitRequestFullscreen();
+                } else if ((container as any).msRequestFullscreen) {
+                    // IE/Edge
+                    await (container as any).msRequestFullscreen();
+                } else if (video && (video as any).webkitEnterFullscreen) {
+                    // iOS Safari video-specific fullscreen
+                    (video as any).webkitEnterFullscreen();
+                } else if (video && (video as any).webkitSupportsFullscreen) {
+                    // Another iOS Safari fallback
+                    (video as any).webkitEnterFullscreen();
+                }
+
+                // Try to lock screen orientation to portrait for vertical videos
+                if (screen.orientation && (screen.orientation as any).lock) {
                     try {
-                        (video as any).webkitEnterFullscreen();
-                    } catch (e) {
-                        console.log('Webkit fullscreen request failed:', e);
+                        await (screen.orientation as any).lock('portrait');
+                    } catch {
+                        // Ignore orientation lock errors
+                    }
+                }
+            } catch (error) {
+                // Fullscreen may be blocked by browser, try video element fullscreen
+                if (video) {
+                    if ((video as any).webkitEnterFullscreen) {
+                        try {
+                            (video as any).webkitEnterFullscreen();
+                        } catch {
+                            console.log('Video fullscreen also failed');
+                        }
                     }
                 }
             }
@@ -528,9 +556,9 @@ export function VideoPlayer({
                     // Auto-play next episode when video ends
                     if (hasNextEpisode && onNextEpisode) {
                         onNextEpisode();
-                    } else {
-                        onEnded?.();
                     }
+                    // Always call onEnded as fallback
+                    onEnded?.();
                 }}
                 onWaiting={() => setIsBuffering(true)}
                 onPlaying={() => setIsBuffering(false)}

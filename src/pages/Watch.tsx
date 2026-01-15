@@ -108,10 +108,11 @@ const Watch = () => {
 
   // Handle video ended - auto-play next episode
   const handleVideoEnded = useCallback(() => {
-    if (autoPlay && currentEpisode < totalEpisodes) {
+    // Always go to next episode when video ends (if available)
+    if (currentEpisode < totalEpisodes) {
       navigate(`/watch/${bookId}/${currentEpisode + 1}`);
     }
-  }, [autoPlay, currentEpisode, totalEpisodes, bookId, navigate]);
+  }, [currentEpisode, totalEpisodes, bookId, navigate]);
 
   // Swipe gestures for mobile
   const { touchHandlers, isSwiping } = useSwipeGesture({
