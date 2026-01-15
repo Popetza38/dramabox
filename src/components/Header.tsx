@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Play, Bookmark, Home, TrendingUp } from "lucide-react";
+import { Search, Menu, X, Play, Bookmark, Home, TrendingUp, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -21,6 +21,7 @@ export function Header() {
   const navLinks = [
     { to: "/", label: "หน้าแรก", icon: Home },
     { to: "/trending", label: "กำลังฮิต", icon: TrendingUp },
+    { to: "/history", label: "ประวัติการดู", icon: History },
     { to: "/watchlist", label: "รายการของฉัน", icon: Bookmark },
   ];
 

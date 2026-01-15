@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, AlertCircle, SkipForward } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { fetchDramaDetail, fetchAllEpisodes, getVideoUrl } from "@/lib/api";
+import { addToWatchHistory, getAutoPlayEnabled, setAutoPlayEnabled } from "@/lib/history";
 
 const Watch = () => {
   const { bookId, episodeNum } = useParams<{ bookId: string; episodeNum: string }>();
@@ -13,6 +15,9 @@ const Watch = () => {
   const currentEpisode = parseInt(episodeNum || "1", 10);
   const [episodePage, setEpisodePage] = useState(1);
   const [videoError, setVideoError] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(() => getAutoPlayEnabled());
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastSaveRef = useRef<number>(0);
   const episodesPerPage = 30;
 
   const { data: drama } = useQuery({
@@ -44,6 +49,55 @@ const Watch = () => {
     const pageForEpisode = Math.ceil(currentEpisode / episodesPerPage);
     setEpisodePage(pageForEpisode);
   }, [currentEpisode]);
+
+  // Save to watch history when drama data is available
+  useEffect(() => {
+    if (drama && bookId && episodes?.length) {
+      addToWatchHistory({
+        bookId,
+        bookName: drama.bookName || "Unknown",
+        coverWap: drama.coverWap || "",
+        currentEpisode,
+        totalEpisodes: drama.chapterCount || episodes.length,
+        progress: 0,
+      });
+    }
+  }, [drama, bookId, currentEpisode, episodes]);
+
+  // Handle video time update - save progress periodically
+  const handleTimeUpdate = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !bookId || !drama) return;
+
+    const now = Date.now();
+    // Save progress every 10 seconds
+    if (now - lastSaveRef.current < 10000) return;
+    lastSaveRef.current = now;
+
+    const progress = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+    addToWatchHistory({
+      bookId,
+      bookName: drama.bookName || "Unknown",
+      coverWap: drama.coverWap || "",
+      currentEpisode,
+      totalEpisodes: drama.chapterCount || episodes?.length || 0,
+      progress: Math.round(progress),
+    });
+  }, [bookId, drama, currentEpisode, episodes]);
+
+  // Handle video ended - auto-play next episode
+  const handleVideoEnded = useCallback(() => {
+    if (autoPlay && currentEpisode < totalEpisodes) {
+      navigate(`/watch/${bookId}/${currentEpisode + 1}`);
+    }
+  }, [autoPlay, currentEpisode, totalEpisodes, bookId, navigate]);
+
+  // Toggle auto-play
+  const toggleAutoPlay = () => {
+    const newValue = !autoPlay;
+    setAutoPlay(newValue);
+    setAutoPlayEnabled(newValue);
+  };
 
   const goToEpisode = (ep: number) => {
     if (ep >= 1 && ep <= totalEpisodes) {
@@ -87,6 +141,7 @@ const Watch = () => {
               </div>
             ) : videoUrl && !videoError ? (
               <video
+                ref={videoRef}
                 key={videoUrl}
                 src={videoUrl}
                 controls
@@ -95,6 +150,8 @@ const Watch = () => {
                 className="w-full h-full"
                 controlsList="nodownload"
                 onError={() => setVideoError(true)}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={handleVideoEnded}
               >
                 เบราว์เซอร์ไม่รองรับการเล่นวิดีโอ
               </video>
@@ -135,26 +192,40 @@ const Watch = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToEpisode(currentEpisode - 1)}
-                  disabled={currentEpisode <= 1}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <span className="px-4 text-sm font-medium">
-                  {currentEpisode} / {totalEpisodes}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToEpisode(currentEpisode + 1)}
-                  disabled={currentEpisode >= totalEpisodes}
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
+              <div className="flex items-center gap-4">
+                {/* Auto-play Toggle */}
+                <div className="flex items-center gap-2">
+                  <SkipForward className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground hidden sm:inline">เล่นต่ออัตโนมัติ</span>
+                  <Switch
+                    checked={autoPlay}
+                    onCheckedChange={toggleAutoPlay}
+                    aria-label="เล่นตอนถัดไปอัตโนมัติ"
+                  />
+                </div>
+
+                {/* Episode Navigation */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => goToEpisode(currentEpisode - 1)}
+                    disabled={currentEpisode <= 1}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <span className="px-4 text-sm font-medium">
+                    {currentEpisode} / {totalEpisodes}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => goToEpisode(currentEpisode + 1)}
+                    disabled={currentEpisode >= totalEpisodes}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
