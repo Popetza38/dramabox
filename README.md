@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# 🎬 DramaBox - Streaming Platform
 
-## Project info
+A modern streaming platform for Thai-dubbed drama series built with React, TypeScript, and Vite.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Features
 
-## How can I edit this code?
+- **Browse Dramas**: Explore recommended, trending, and VIP content
+- **Search**: Find your favorite dramas by keyword  
+- **Watch**: Stream episodes with a native video player
+- **Responsive**: Works on desktop, tablet, and mobile
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: TailwindCSS, Radix UI
+- **State**: TanStack Query (React Query)
+- **Routing**: React Router DOM
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 📦 Installation
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+# Clone the repository
+git clone <repository-url>
+cd dramabox
 
-**Use your preferred IDE**
+# Install dependencies
+npm install
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🔧 Configuration
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Variables
 
-**Use GitHub Codespaces**
+Create a `.env` file based on `.env.example`:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```env
+# API URL (your backend API endpoint)
+VITE_API_URL=https://your-api-url.vercel.app
 
-## What technologies are used for this project?
+# Vercel Share Token (if using protected deployments)
+VITE_API_TOKEN=_vercel_share=your_token_here
+```
 
-This project is built with:
+### Development
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+In development mode, the app uses a Vite proxy to bypass CORS:
 
-## How can I deploy this project?
+```bash
+npm run dev
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+The app will be available at `http://localhost:8080`
 
-## Can I connect a custom domain to my Lovable project?
+### Production Build
 
-Yes, you can!
+```bash
+npm run build
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Output will be in the `dist/` directory.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🌐 Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set environment variables in Vercel Dashboard:
+   - `VITE_API_URL`: Your API URL
+   - `VITE_API_TOKEN`: Your share token (if needed)
+4. Deploy!
+
+The `vercel.json` file is already configured for SPA routing.
+
+### Deploy to other platforms
+
+The built `dist/` folder is a static site that can be deployed to:
+- Netlify
+- GitHub Pages
+- Cloudflare Pages
+- Any static hosting
+
+## 📁 Project Structure
+
+```
+dramabox/
+├── src/
+│   ├── components/     # Reusable UI components
+│   ├── pages/          # Page components (routes)
+│   ├── lib/            # Utilities and API functions
+│   └── hooks/          # Custom React hooks
+├── public/             # Static assets
+├── dist/               # Production build output
+└── vercel.json         # Vercel deployment config
+```
+
+## 📝 API Endpoints
+
+The app connects to:
+- `/api/home` - Home page content
+- `/api/recommend` - Recommended dramas
+- `/api/vip` - VIP exclusive content  
+- `/api/search?keyword=` - Search dramas
+- `/api/detail/:id` - Drama details
+- `/api/chapters/:id` - Episode list
+- `/api/video/:chapterId` - Video stream URL
+
+## 📄 License
+
+MIT License

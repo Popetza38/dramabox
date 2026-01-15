@@ -13,11 +13,11 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       "/api": {
-        target: "https://apith-dxkg-git-main-popetza38s-projects.vercel.app",
+        target: "https://apith-git-main-popetza38s-projects.vercel.app",
         changeOrigin: true,
         secure: false,
         headers: {
-          "Origin": "https://apith-dxkg-git-main-popetza38s-projects.vercel.app",
+          "Origin": "https://apith-git-main-popetza38s-projects.vercel.app",
         },
       },
     },

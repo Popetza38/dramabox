@@ -1,7 +1,13 @@
-// Use relative path for Vite proxy (development)
-// In production, this would need to be the full URL
-const BASE_URL = "";
-const SHARE_TOKEN = "_vercel_share=80cfdfrEab50AWaO9YxJLnPxn3FVGSRX";
+// API Configuration
+// In development: uses Vite proxy (empty BASE_URL)
+// In production: uses the full API URL from environment variable or defaults
+const isDev = import.meta.env.DEV;
+const API_BASE = import.meta.env.VITE_API_URL || "https://apith-git-main-popetza38s-projects.vercel.app";
+const BASE_URL = isDev ? "" : API_BASE;
+
+// Share token for Vercel protected deployments
+// In production with public API, this can be removed
+const SHARE_TOKEN = import.meta.env.VITE_API_TOKEN || "_vercel_share=uiENtXou7f4OnJccq0DSmCP7hsAoxTwD";
 
 // Helper to add share token to URLs
 function apiUrl(path: string, params?: string): string {
@@ -263,7 +269,8 @@ export async function searchDramas(query: string): Promise<Drama[]> {
   const response = await fetch(apiUrl("/api/search", `keyword=${encodeURIComponent(query)}`));
   if (!response.ok) throw new Error("Failed to search dramas");
   const data = await response.json();
-  return Array.isArray(data) ? data : data.data || data.dramas || [];
+  const items = Array.isArray(data) ? data : data.data || data.dramas || [];
+  return normalizeArray(items);
 }
 
 export async function fetchPopularSearch(): Promise<string[]> {
