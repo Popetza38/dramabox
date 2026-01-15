@@ -11,6 +11,16 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      "/api": {
+        target: "https://apith-dxkg-git-main-popetza38s-projects.vercel.app",
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          "Origin": "https://apith-dxkg-git-main-popetza38s-projects.vercel.app",
+        },
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

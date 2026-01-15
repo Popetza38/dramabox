@@ -1,5 +1,7 @@
-const BASE_URL = "https://apith-git-main-popetza38s-projects.vercel.app";
-const SHARE_TOKEN = "_vercel_share=3SlucAPgs85JeUS1A2JrZY2BpZ0i3NW8";
+// Use relative path for Vite proxy (development)
+// In production, this would need to be the full URL
+const BASE_URL = "";
+const SHARE_TOKEN = "_vercel_share=80cfdfrEab50AWaO9YxJLnPxn3FVGSRX";
 
 // Helper to add share token to URLs
 function apiUrl(path: string, params?: string): string {
