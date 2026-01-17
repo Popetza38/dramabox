@@ -232,7 +232,6 @@
             pointer-events: none;
         }
 
-        .video-player-wrapper:hover .video-overlay,
         .video-overlay.show {
             opacity: 1;
             pointer-events: all;
@@ -462,7 +461,7 @@
            ===================================================== */
 
         .watch-sidebar {
-            width: 360px;
+            width: 280px;
             background: var(--gradient-surface);
             border-left: 1px solid var(--watch-border);
             display: flex;
@@ -470,10 +469,31 @@
             overflow: hidden;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .watch-sidebar.collapsed {
+            width: 60px;
+        }
+
+        .watch-sidebar.collapsed .sidebar-content,
+        .watch-sidebar.collapsed .episode-nav,
+        .watch-sidebar.collapsed .continue-banner,
+        .watch-sidebar.collapsed .sidebar-title {
+            display: none;
+        }
+
+        .watch-sidebar.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 16px 8px;
+        }
+
+        .watch-sidebar.collapsed .collapse-btn {
+            transform: rotate(180deg);
         }
 
         .sidebar-header {
-            padding: 20px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--watch-border);
             display: flex;
             align-items: center;
@@ -484,8 +504,8 @@
         .sidebar-title {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 16px;
+            gap: 10px;
+            font-size: 14px;
             font-weight: 600;
             color: white;
         }
@@ -494,28 +514,51 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 28px;
+            height: 28px;
             background: var(--gradient-primary);
-            border-radius: 10px;
+            border-radius: 8px;
+        }
+
+        .collapse-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-left: auto;
+        }
+
+        .collapse-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .toggle-sidebar-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            background: rgba(255, 255, 255, 0.08);
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            background: rgba(255, 255, 255, 0.12);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: white;
             cursor: pointer;
             transition: all 0.25s ease;
         }
 
-        .toggle-sidebar-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+        .toggle-sidebar-btn:hover,
+        .toggle-sidebar-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
         }
 
         /* Continue Banner */
@@ -593,7 +636,7 @@
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 10px;
         }
 
         .sidebar-content::-webkit-scrollbar {
@@ -616,8 +659,8 @@
         /* Episode Grid */
         .episode-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+            gap: 6px;
         }
 
         .episode-card {
@@ -626,10 +669,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 16px 8px;
+            padding: 10px 6px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: 'Niramit', sans-serif;
@@ -680,16 +723,16 @@
 
         .episode-number {
             position: relative;
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 700;
             z-index: 1;
         }
 
         .episode-label {
             position: relative;
-            font-size: 11px;
+            font-size: 9px;
             color: rgba(255, 255, 255, 0.6);
-            margin-top: 4px;
+            margin-top: 2px;
             z-index: 1;
         }
 
@@ -700,8 +743,8 @@
         /* Episode Navigation */
         .episode-nav {
             display: flex;
-            gap: 10px;
-            padding: 16px;
+            gap: 8px;
+            padding: 10px;
             background: rgba(0, 0, 0, 0.4);
             border-top: 1px solid var(--watch-border);
         }
@@ -711,14 +754,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 14px;
+            gap: 6px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
+            border-radius: 10px;
             color: white;
             font-family: 'Niramit', sans-serif;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -878,6 +921,34 @@
             .episode-nav-btn {
                 padding: 12px;
                 font-size: 13px;
+            }
+
+            /* Make buttons easier to tap on mobile */
+            .toggle-sidebar-btn {
+                width: 48px;
+                height: 48px;
+                min-width: 48px;
+                min-height: 48px;
+            }
+
+            .toggle-sidebar-btn i {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            /* Larger episode cards on mobile for easier tapping */
+            .episode-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+                gap: 8px;
+            }
+
+            .episode-card {
+                padding: 14px 8px;
+                min-height: 56px;
+            }
+
+            .episode-number {
+                font-size: 16px;
             }
         }
 
@@ -1058,10 +1129,13 @@
                 <div class="sidebar-header">
                     <div class="sidebar-title">
                         <span class="sidebar-title-icon">
-                            <i data-lucide="play-circle" style="width:20px;height:20px;color:white"></i>
+                            <i data-lucide="play-circle" style="width:16px;height:16px;color:white"></i>
                         </span>
                         รายการตอน
                     </div>
+                    <button class="collapse-btn" onclick="toggleCollapse()" aria-label="ย่อ/ขยาย" id="collapse-btn">
+                        <i data-lucide="panel-right-close" style="width:18px;height:18px"></i>
+                    </button>
                     <button class="toggle-sidebar-btn" onclick="toggleSidebar()" aria-label="ปิด">
                         <i data-lucide="x" style="width:20px;height:20px"></i>
                     </button>
@@ -1107,11 +1181,30 @@
         // Show/hide sidebar toggle button on mobile
         function checkMobile() {
             const btn = document.getElementById('sidebar-toggle-btn');
+            const collapseBtn = document.getElementById('collapse-btn');
             if (window.innerWidth <= 768) {
                 btn.style.display = 'flex';
+                if (collapseBtn) collapseBtn.style.display = 'none';
             } else {
                 btn.style.display = 'none';
+                if (collapseBtn) collapseBtn.style.display = 'flex';
             }
+        }
+
+        // Toggle collapse sidebar (desktop)
+        function toggleCollapse() {
+            const sidebar = document.getElementById('watch-sidebar');
+            const collapseBtn = document.getElementById('collapse-btn');
+            sidebar.classList.toggle('collapsed');
+
+            // Update icon
+            const icon = collapseBtn.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'panel-right-open');
+            } else {
+                icon.setAttribute('data-lucide', 'panel-right-close');
+            }
+            lucide.createIcons();
         }
 
         checkMobile();

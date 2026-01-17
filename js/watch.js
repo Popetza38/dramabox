@@ -344,7 +344,19 @@ function setupVideoControls() {
 
     if (!video || !wrapper) return;
 
+    let isMouseOverControls = false;
+
+    // Start with controls hidden
+    hideControls();
+
     wrapper.addEventListener('mousemove', showControls);
+    wrapper.addEventListener('mouseenter', showControls);
+    wrapper.addEventListener('mouseleave', () => {
+        if (!video.paused) {
+            hideControls();
+        }
+    });
+
     wrapper.addEventListener('touchstart', () => {
         if (overlay?.classList.contains('show')) {
             hideControls();
@@ -355,11 +367,36 @@ function setupVideoControls() {
 
     wrapper.addEventListener('dblclick', () => toggleFullscreen(video));
 
+    // Clicking on overlay controls should not hide them
+    if (overlay) {
+        overlay.addEventListener('mouseenter', () => {
+            isMouseOverControls = true;
+            clearTimeout(controlsTimeout);
+        });
+        overlay.addEventListener('mouseleave', () => {
+            isMouseOverControls = false;
+            if (!video.paused) {
+                controlsTimeout = setTimeout(hideControls, 2000);
+            }
+        });
+    }
+
     video.addEventListener('timeupdate', updateProgressBar);
     video.addEventListener('loadedmetadata', updateDuration);
     video.addEventListener('progress', updateBufferedBar);
-    video.addEventListener('play', () => updatePlayPauseIcon(true));
-    video.addEventListener('pause', () => updatePlayPauseIcon(false));
+    video.addEventListener('play', () => {
+        updatePlayPauseIcon(true);
+        // Auto-hide controls when video starts playing
+        controlsTimeout = setTimeout(() => {
+            if (!isMouseOverControls) hideControls();
+        }, 2000);
+    });
+    video.addEventListener('pause', () => {
+        updatePlayPauseIcon(false);
+        // Show controls when paused
+        showControls();
+        clearTimeout(controlsTimeout);
+    });
     video.addEventListener('waiting', () => showVideoLoading(true));
     video.addEventListener('canplay', () => showVideoLoading(false));
 
@@ -367,15 +404,19 @@ function setupVideoControls() {
         if (overlay) overlay.classList.add('show');
         if (header) header.classList.remove('hidden');
         clearTimeout(controlsTimeout);
-        controlsTimeout = setTimeout(() => {
-            if (!video.paused) hideControls();
-        }, 3000);
+        if (!video.paused && !isMouseOverControls) {
+            controlsTimeout = setTimeout(hideControls, 3000);
+        }
     }
 
     function hideControls() {
         if (overlay) overlay.classList.remove('show');
         if (header) header.classList.add('hidden');
     }
+
+    // Export for use elsewhere
+    window.showVideoControls = showControls;
+    window.hideVideoControls = hideControls;
 }
 
 /**
@@ -628,23 +669,11 @@ function setupVideoEvents() {
         saveWatchProgress();
 
         if (currentEpisodeIndex < chapters.length - 1) {
-            Swal.fire({
-                title: 'เล่นตอนถัดไป?',
-                text: 'วิดีโอจบแล้ว ต้องการเล่นตอนถัดไปหรือไม่?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'เล่นต่อ',
-                cancelButtonText: 'ไม่',
-                timer: 5000,
-                timerProgressBar: true,
-                customClass: { popup: 'swal2-dark' }
-            }).then((result) => {
-                if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                    playNext();
-                }
-            });
+            // Auto-play next episode
+            showToast('กำลังเล่นตอนถัดไป...', 'info');
+            setTimeout(() => playNext(), 1500);
         } else {
-            showToast('จบซีรีส์แล้ว!', 'success');
+            showToast('จบซีรีส์แล้ว! 🎉', 'success');
         }
     });
 
