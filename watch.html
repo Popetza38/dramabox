@@ -1014,6 +1014,82 @@
                 transform: translateY(0);
             }
         }
+
+        /* =====================================================
+           DOUBLE-TAP SEEK INDICATOR
+           ===================================================== */
+
+        .double-tap-zone {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40%;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+        }
+
+        .double-tap-zone.left {
+            left: 0;
+            border-radius: 0 50% 50% 0;
+        }
+
+        .double-tap-zone.right {
+            right: 0;
+            border-radius: 50% 0 0 50%;
+        }
+
+        .double-tap-indicator {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .double-tap-indicator.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .double-tap-indicator i {
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .double-tap-indicator span {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Ripple effect */
+        .tap-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -1058,6 +1134,20 @@
                         <div class="video-loading" id="video-loading" style="display: none;">
                             <div class="video-loading-spinner"></div>
                             <div class="video-loading-text">กำลังโหลดวิดีโอ...</div>
+                        </div>
+
+                        <!-- Double-tap Seek Zones -->
+                        <div class="double-tap-zone left" id="tap-zone-left">
+                            <div class="double-tap-indicator" id="seek-indicator-left">
+                                <i data-lucide="rotate-ccw" style="width:32px;height:32px"></i>
+                                <span>-10 วินาที</span>
+                            </div>
+                        </div>
+                        <div class="double-tap-zone right" id="tap-zone-right">
+                            <div class="double-tap-indicator" id="seek-indicator-right">
+                                <i data-lucide="rotate-cw" style="width:32px;height:32px"></i>
+                                <span>+10 วินาที</span>
+                            </div>
                         </div>
 
                         <!-- Video Controls Overlay -->

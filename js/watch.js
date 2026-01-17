@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initWatchPage();
     setupVideoEvents();
     setupVideoControls();
+    setupDoubleTapSeek();
+    setupOrientationFullscreen();
 });
 
 /**
@@ -789,3 +791,179 @@ window.toggleMute = toggleMute;
 window.togglePIP = togglePIP;
 window.toggleSidebar = toggleSidebar;
 window.resumeFromHistory = resumeFromHistory;
+
+/**
+ * Double-tap to Seek
+ * แตะ 2 ครั้งเพื่อ skip ±10 วินาที
+ */
+function setupDoubleTapSeek() {
+    const video = document.getElementById('video-player');
+    const leftZone = document.getElementById('tap-zone-left');
+    const rightZone = document.getElementById('tap-zone-right');
+    const leftIndicator = document.getElementById('seek-indicator-left');
+    const rightIndicator = document.getElementById('seek-indicator-right');
+
+    if (!video || !leftZone || !rightZone) return;
+
+    let lastTapTime = 0;
+    let lastTapZone = null;
+    let tapCount = 0;
+    let tapTimeout = null;
+    let indicatorTimeout = null;
+
+    function handleDoubleTap(zone, direction) {
+        const indicator = direction === 'left' ? leftIndicator : rightIndicator;
+        const seekAmount = direction === 'left' ? -10 : 10;
+
+        // Create ripple effect
+        createRipple(zone);
+
+        // Skip video
+        skipTime(seekAmount);
+
+        // Show indicator
+        if (indicator) {
+            indicator.classList.add('show');
+            clearTimeout(indicatorTimeout);
+            indicatorTimeout = setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 600);
+        }
+    }
+
+    function createRipple(zone) {
+        const ripple = document.createElement('div');
+        ripple.className = 'tap-ripple';
+        ripple.style.width = '60px';
+        ripple.style.height = '60px';
+        ripple.style.left = '50%';
+        ripple.style.top = '50%';
+        ripple.style.marginLeft = '-30px';
+        ripple.style.marginTop = '-30px';
+        zone.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+    }
+
+    function handleTap(e, zone, direction) {
+        const currentTime = Date.now();
+
+        // Check if it's a double tap (within 300ms)
+        if (lastTapZone === zone && currentTime - lastTapTime < 300) {
+            // Double tap detected
+            tapCount++;
+            clearTimeout(tapTimeout);
+            handleDoubleTap(zone, direction);
+        } else {
+            // First tap - reset and wait for potential second tap
+            tapCount = 1;
+            clearTimeout(tapTimeout);
+            tapTimeout = setTimeout(() => {
+                // Single tap - toggle controls or play/pause
+                if (tapCount === 1) {
+                    togglePlay();
+                }
+                tapCount = 0;
+            }, 300);
+        }
+
+        lastTapTime = currentTime;
+        lastTapZone = zone;
+    }
+
+    // Touch events for mobile
+    leftZone.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleTap(e, leftZone, 'left');
+    });
+
+    rightZone.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleTap(e, rightZone, 'right');
+    });
+
+    // Click events for desktop (double-click)
+    leftZone.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDoubleTap(leftZone, 'left');
+    });
+
+    rightZone.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDoubleTap(rightZone, 'right');
+    });
+
+    // Single click for play/pause on desktop
+    leftZone.addEventListener('click', (e) => {
+        // Don't toggle play on click - will be handled by dblclick timeout
+    });
+
+    rightZone.addEventListener('click', (e) => {
+        // Don't toggle play on click - will be handled by dblclick timeout
+    });
+}
+
+/**
+ * Landscape Auto-fullscreen
+ * หมุนจอเป็นแนวนอนเข้าเต็มจออัตโนมัติ
+ */
+function setupOrientationFullscreen() {
+    const video = document.getElementById('video-player');
+    if (!video) return;
+
+    // Check if screen orientation API is supported
+    const supportsOrientationAPI = 'orientation' in screen || 'mozOrientation' in screen || 'msOrientation' in screen;
+
+    let wasFullscreenBeforePortrait = false;
+
+    function handleOrientationChange() {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const isFullscreen = document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement;
+
+        // Check if video is playing or has been played
+        if (video.readyState < 2) return; // Don't auto-fullscreen if video not loaded
+
+        if (isLandscape && !isFullscreen) {
+            // Entering landscape - go fullscreen
+            wasFullscreenBeforePortrait = false;
+            toggleFullscreen(video);
+            showToast('เข้าสู่โหมดเต็มจอ', 'info');
+        } else if (!isLandscape && isFullscreen && !wasFullscreenBeforePortrait) {
+            // Back to portrait - exit fullscreen (only if we auto-entered)
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    // Listen for orientation changes
+    if (supportsOrientationAPI && screen.orientation) {
+        screen.orientation.addEventListener('change', handleOrientationChange);
+    }
+
+    // Fallback: window resize (works on more devices)
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleOrientationChange, 200);
+    });
+
+    // Remember if user manually entered fullscreen
+    document.addEventListener('fullscreenchange', () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        if (document.fullscreenElement && !isLandscape) {
+            wasFullscreenBeforePortrait = true;
+        }
+    });
+}
