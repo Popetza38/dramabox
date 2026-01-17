@@ -544,10 +544,46 @@ async function togglePIP() {
 }
 
 function toggleFullscreen(element) {
-    if (!document.fullscreenElement) {
-        (element || document.getElementById('video-player')).requestFullscreen().catch(() => { });
+    const video = element || document.getElementById('video-player');
+
+    // Check if already in fullscreen
+    const isFullscreen = document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+
+    if (!isFullscreen) {
+        // Try standard Fullscreen API first
+        if (video.requestFullscreen) {
+            video.requestFullscreen().catch(() => { });
+        }
+        // Safari/iOS - use webkitEnterFullscreen for video
+        else if (video.webkitEnterFullscreen) {
+            video.webkitEnterFullscreen();
+        }
+        // Webkit prefix (older Safari)
+        else if (video.webkitRequestFullscreen) {
+            video.webkitRequestFullscreen();
+        }
+        // Mozilla prefix
+        else if (video.mozRequestFullScreen) {
+            video.mozRequestFullScreen();
+        }
+        // MS prefix
+        else if (video.msRequestFullscreen) {
+            video.msRequestFullscreen();
+        }
     } else {
-        document.exitFullscreen();
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
     }
 }
 
