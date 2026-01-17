@@ -1,23 +1,315 @@
-<!doctype html>
-<html lang="th" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DramaBox - สตรีมมิ่งซีรีส์สั้นที่ดีที่สุด</title>
-    <meta name="description" content="DramaBox - สตรีมมิ่งซีรีส์สั้นที่ดีที่สุด รับชมซีรีส์ยอดนิยมคุณภาพสูง โรแมนติก ระทึกขวัญ และอีกหลากหลายแนว" />
-    <meta name="keywords" content="ซีรีส์, dramabox, สตรีมมิ่ง, หนังสั้น, ซีรีส์เกาหลี, โรแมนติก, ทริลเลอร์" />
-    <meta name="theme-color" content="#0d0b14" />
+<!DOCTYPE html>
+<html lang="th">
 
-    <meta property="og:title" content="DramaBox - สตรีมมิ่งซีรีส์สั้น" />
-    <meta property="og:description" content="รับชมซีรีส์ยอดนิยมคุณภาพสูง โรแมนติก ระทึกขวัญ และอีกหลากหลายแนว" />
-    <meta property="og:type" content="website" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ดูซีรีส์ออนไลน์ฟรี พากย์ไทย คมชัด HD - DramaBox">
+    <meta name="theme-color" content="#0F0F23">
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="DramaBox - สตรีมมิ่งซีรีส์สั้น" />
-  </head>
+    <title>DramaBox - ดูซีรีส์ออนไลน์</title>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+
+    <!-- Google Fonts - Niramit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* Additional Index Page Styles */
+        .hero-slider {
+            position: relative;
+            height: 500px;
+            margin: var(--space-md);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-slide-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-slide-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 15, 35, 1) 0%, transparent 50%);
+        }
+
+        .hero-slide-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: var(--space-2xl);
+        }
+
+        .hero-indicators {
+            position: absolute;
+            bottom: var(--space-lg);
+            right: var(--space-2xl);
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .hero-indicator {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .hero-indicator.active {
+            background: var(--primary);
+            width: 60px;
+        }
+
+        /* View All Page Styles */
+        .view-all-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: var(--bg-dark);
+            overflow-y: auto;
+        }
+
+        .view-all-modal.show {
+            display: block;
+        }
+
+        .view-all-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .view-all-back {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: none;
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .view-all-title {
+            flex: 1;
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+
+        .view-all-content {
+            padding: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .hero-slider {
+                height: 380px;
+                margin: var(--space-sm);
+            }
+
+            .hero-slide-content {
+                padding: var(--space-lg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="play"></i>
+                </div>
+                <span>DramaBox</span>
+            </a>
+
+            <!-- Search Bar -->
+            <form class="search-bar" onsubmit="handleSearch(event)">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="search-input" placeholder="ค้นหาซีรีส์..." autocomplete="off">
+            </form>
+
+            <!-- Desktop Nav -->
+            <nav class="nav-desktop">
+                <a href="index.html" class="active">
+                    <i data-lucide="home"></i>
+                    หน้าหลัก
+                </a>
+                <a href="#categories">
+                    <i data-lucide="grid-3x3"></i>
+                    หมวดหมู่
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Slider -->
+        <section id="hero" class="hero-slider">
+            <!-- Content loaded via SweetAlert loading -->
+        </section>
+
+        <!-- Continue Watching Section -->
+        <section id="continue-watching-section" class="drama-section container" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i data-lucide="clock"></i>
+                    ดูต่อ
+                </h2>
+                <button onclick="clearWatchHistory()" class="view-all" style="color: var(--text-muted);">
+                    ล้างประวัติ
+                </button>
+            </div>
+            <div id="continue-watching-grid" class="continue-watching-scroll"></div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories" class="categories-section container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i data-lucide="bookmark"></i>
+                    หมวดหมู่
+                </h2>
+            </div>
+            <div id="categories-scroll" class="categories-scroll"></div>
+        </section>
+
+        <!-- Popular Section -->
+        <section class="drama-section container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i data-lucide="flame"></i>
+                    ซีรีส์ยอดนิยม
+                </h2>
+                <button onclick="showViewAll('popular', 'ซีรีส์ยอดนิยม')" class="view-all">
+                    ดูทั้งหมด
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+            <div id="popular-grid" class="drama-grid">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+        </section>
+
+        <!-- Recommend Section -->
+        <section class="drama-section container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i data-lucide="star"></i>
+                    แนะนำสำหรับคุณ
+                </h2>
+                <button onclick="showViewAll('recommend', 'แนะนำสำหรับคุณ')" class="view-all">
+                    ดูทั้งหมด
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+            <div id="recommend-grid" class="drama-grid">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- View All Modal -->
+    <div id="view-all-modal" class="view-all-modal">
+        <div class="view-all-header">
+            <button class="view-all-back" onclick="closeViewAll()">
+                <i data-lucide="arrow-left"></i>
+            </button>
+            <h2 id="view-all-title" class="view-all-title">ดูทั้งหมด</h2>
+        </div>
+        <div class="view-all-content">
+            <div id="view-all-grid" class="drama-grid"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2026 DramaBox - ดูซีรีส์ออนไลน์ฟรี พากย์ไทย</p>
+    </footer>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item active">
+            <i data-lucide="home"></i>
+            <span>หน้าหลัก</span>
+        </a>
+        <a href="search.html" class="bottom-nav-item">
+            <i data-lucide="search"></i>
+            <span>ค้นหา</span>
+        </a>
+        <a href="#categories" class="bottom-nav-item">
+            <i data-lucide="grid-3x3"></i>
+            <span>หมวดหมู่</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <i data-lucide="heart"></i>
+            <span>รายการโปรด</span>
+        </a>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+
 </html>
