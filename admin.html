@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo">
+                <i class="fas fa-play-circle"></i>
+                <span>DramPop</span>
+            </a>
+            <span class="admin-badge">Admin</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link active" data-page="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แผงควบคุม</span>
+            </a>
+
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link" data-page="series">
+                <i class="fas fa-film"></i>
+                <span>จัดการซีรีส์</span>
+            </a>
+            <a href="admin-import.html" class="nav-link" data-page="import">
+                <i class="fas fa-cloud-download-alt"></i>
+                <span>ดึงซีรีส์จาก API</span>
+            </a>
+            <a href="admin-categories.html" class="nav-link" data-page="categories">
+                <i class="fas fa-tags"></i>
+                <span>จัดการหมวดหมู่</span>
+            </a>
+            <a href="admin-tags.html" class="nav-link" data-page="tags">
+                <i class="fas fa-hashtag"></i>
+                <span>จัดการแท็ก</span>
+            </a>
+
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link" data-page="ads">
+                <i class="fas fa-ad"></i>
+                <span>จัดการโฆษณา</span>
+            </a>
+            <a href="admin-vip.html" class="nav-link" data-page="vip">
+                <i class="fas fa-crown"></i>
+                <span>แพ็กเกจ VIP</span>
+            </a>
+            <a href="admin-giftcode.html" class="nav-link" data-page="giftcode">
+                <i class="fas fa-gift"></i>
+                <span>Gift Code</span>
+            </a>
+            <a href="admin-payment.html" class="nav-link" data-page="payment">
+                <i class="fas fa-credit-card"></i>
+                <span>ตั้งค่าเติมเงิน</span>
+            </a>
+            <a href="admin-reports.html" class="nav-link" data-page="reports">
+                <i class="fas fa-chart-line"></i>
+                <span>รายงานเติมเงิน</span>
+            </a>
+
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link" data-page="users">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้</span>
+            </a>
+
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>ตั้งค่าเว็บไซต์</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">แผงควบคุม</h1>
+            <div class="topbar-actions">
+                <a href="index.html" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-external-link-alt"></i> ดูเว็บไซต์
+                </a>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="admin-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-series">0</h3>
+                        <p>ซีรีส์ทั้งหมด</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-users">0</h3>
+                        <p>ผู้ใช้ทั้งหมด</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-vip">0</h3>
+                        <p>สมาชิก VIP</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-revenue">฿0</h3>
+                        <p>รายได้วันนี้</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="admin-section">
+                <h2 class="section-title">การดำเนินการด่วน</h2>
+                <div class="quick-actions">
+                    <a href="admin-series.html?action=add" class="action-card">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>เพิ่มซีรีส์</span>
+                    </a>
+                    <a href="admin-import.html" class="action-card">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>ดึงจาก API</span>
+                    </a>
+                    <a href="admin-giftcode.html?action=add" class="action-card">
+                        <i class="fas fa-gift"></i>
+                        <span>สร้าง Gift Code</span>
+                    </a>
+                    <a href="admin-ads.html" class="action-card">
+                        <i class="fas fa-ad"></i>
+                        <span>จัดการโฆษณา</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="admin-grid">
+                <div class="admin-section">
+                    <h2 class="section-title">ซีรีส์ล่าสุด</h2>
+                    <div class="table-container">
+                        <table class="admin-table" id="recent-series">
+                            <thead>
+                                <tr>
+                                    <th>ซีรีส์</th>
+                                    <th>ตอน</th>
+                                    <th>ยอดวิว</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="3" class="text-center">กำลังโหลด...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2 class="section-title">สถิติการดู</h2>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>กราฟสถิติ</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Toggle sidebar
+            document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+                document.getElementById('admin-sidebar').classList.toggle('collapsed');
+            });
+
+            // Load stats
+            await loadDashboardStats();
+        });
+
+        async function loadDashboardStats() {
+            try {
+                const result = await API.getHome();
+
+                if (result?.success && result.data) {
+                    // Update stats (mock data)
+                    document.getElementById('stat-series').textContent = result.data.length;
+                    document.getElementById('stat-users').textContent = '1,234';
+                    document.getElementById('stat-vip').textContent = '89';
+                    document.getElementById('stat-revenue').textContent = '฿12,450';
+
+                    // Render recent series
+                    const tbody = document.querySelector('#recent-series tbody');
+                    tbody.innerHTML = result.data.slice(0, 5).map(drama => `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="${drama.cover}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                    <span style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        ${Utils.escapeHtml(drama.name)}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>${drama.chapterCount || 0}</td>
+                            <td>${drama.playCount || '0'}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

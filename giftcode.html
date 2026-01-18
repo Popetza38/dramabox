@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แลก Gift Code - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="page-title">แลก Gift Code</h1>
+            <div style="width:40px"></div>
+        </div>
+    </header>
+
+    <main class="main-content page-content">
+        <div class="vip-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <i class="fas fa-gift vip-icon"></i>
+            <h2 class="vip-title">Gift Code</h2>
+            <p class="vip-subtitle">ใส่โค้ดเพื่อรับของรางวัล</p>
+        </div>
+
+        <div class="giftcode-form">
+            <h3 style="margin-bottom: var(--spacing-lg);">กรอกรหัส Gift Code</h3>
+
+            <div class="giftcode-input">
+                <input type="text" id="giftcode-input" placeholder="XXXX-XXXX-XXXX" maxlength="20">
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-block" id="btn-redeem">
+                <i class="fas fa-check-circle"></i> แลกรหัส
+            </button>
+        </div>
+
+        <div class="menu-list" style="margin-top: var(--spacing-xl);">
+            <div class="menu-item" style="cursor: default;">
+                <i class="fas fa-coins text-vip"></i>
+                <span>โค้ดรับ Coins</span>
+            </div>
+            <div class="menu-item" style="cursor: default;">
+                <i class="fas fa-crown text-vip"></i>
+                <span>โค้ด VIP</span>
+            </div>
+            <div class="menu-item" style="cursor: default;">
+                <i class="fas fa-film text-primary"></i>
+                <span>โค้ดดูซีรี่ย์ฟรี</span>
+            </div>
+        </div>
+
+        <p
+            style="text-align: center; color: var(--color-text-muted); margin-top: var(--spacing-xl); font-size: var(--font-size-sm);">
+            ติดตามรับโค้ดฟรีได้ที่ช่องทางโซเชียลมีเดียของเรา
+        </p>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>หน้าแรก</span></a>
+        <a href="category.html" class="nav-item"><i class="fas fa-compass"></i><span>สำรวจ</span></a>
+        <a href="daily-check.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>เช็ครายวัน</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>ประวัติ</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>โปรไฟล์</span></a>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-redeem').addEventListener('click', redeemCode);
+
+            // Format input
+            document.getElementById('giftcode-input').addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        });
+
+        async function redeemCode() {
+            const code = document.getElementById('giftcode-input').value.trim();
+
+            if (!code) {
+                Utils.toast('กรุณากรอกรหัส', 'warning');
+                return;
+            }
+
+            const user = Auth.getUser();
+            if (!user) {
+                Utils.toast('กรุณาเข้าสู่ระบบก่อน', 'warning');
+                Utils.navigate('login.html');
+                return;
+            }
+
+            Utils.showLoading('กำลังตรวจสอบ...');
+
+            try {
+                const result = await Auth.redeemGiftCode(code);
+                Utils.hideLoading();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: result.message,
+                    background: '#1a1a25',
+                    color: '#ffffff',
+                    confirmButtonColor: '#10b981'
+                });
+
+                document.getElementById('giftcode-input').value = '';
+            } catch (error) {
+                Utils.hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ไม่สำเร็จ',
+                    text: error.message,
+                    background: '#1a1a25',
+                    color: '#ffffff',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

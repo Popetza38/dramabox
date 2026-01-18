@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการโฆษณา - Admin DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>แผงควบคุม</span></a>
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link"><i class="fas fa-film"></i><span>จัดการซีรีส์</span></a>
+            <a href="admin-import.html" class="nav-link"><i class="fas fa-cloud-download-alt"></i><span>ดึงซีรีส์จาก
+                    API</span></a>
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link active"><i class="fas fa-ad"></i><span>จัดการโฆษณา</span></a>
+            <a href="admin-vip.html" class="nav-link"><i class="fas fa-crown"></i><span>แพ็กเกจ VIP</span></a>
+            <a href="admin-giftcode.html" class="nav-link"><i class="fas fa-gift"></i><span>Gift Code</span></a>
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link"><i class="fas fa-users"></i><span>จัดการผู้ใช้</span></a>
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i><span>ตั้งค่าเว็บไซต์</span></a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">จัดการโฆษณา</h1>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showAddAdModal()">
+                    <i class="fas fa-plus"></i> เพิ่มโฆษณา
+                </button>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Settings -->
+            <div class="admin-section">
+                <h2 class="section-title"><i class="fas fa-cog"></i> ตั้งค่าโฆษณา</h2>
+                <form class="admin-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ระยะเวลาปลดล็อค (นาที)</label>
+                            <input type="number" class="form-input" id="unlock-duration" value="30" min="1">
+                            <small style="color: var(--color-text-muted);">หลังจากดูโฆษณา
+                                จะปลดล็อคเป็นเวลากี่นาที</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Points สำหรับข้ามโฆษณา</label>
+                            <input type="number" class="form-input" id="skip-points" value="10" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="ads-enabled" checked>
+                            <span>เปิดใช้งานระบบโฆษณา</span>
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i> บันทึกการตั้งค่า
+                    </button>
+                </form>
+            </div>
+
+            <!-- Ad Links -->
+            <div class="admin-section">
+                <h2 class="section-title"><i class="fas fa-link"></i> รายการลิงก์โฆษณา</h2>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ชื่อ</th>
+                                <th>URL</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ads-table">
+                            <tr>
+                                <td>โฆษณาหลัก</td>
+                                <td><code>https://example.com/ad1</code></td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(34,197,94,0.2); color: #4ade80;">เปิดใช้งาน</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>โฆษณาสำรอง</td>
+                                <td><code>https://example.com/ad2</code></td>
+                                <td><span class="badge-tag">ปิดใช้งาน</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Ad Modal -->
+    <div class="admin-modal" id="ad-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3>เพิ่มลิงก์โฆษณา</h3>
+                <button class="modal-close" onclick="closeAdModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="form-group">
+                    <label class="form-label">ชื่อโฆษณา</label>
+                    <input type="text" class="form-input" id="ad-name" placeholder="เช่น โฆษณาหลัก">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL</label>
+                    <input type="url" class="form-input" id="ad-url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="ad-active" checked>
+                        <span>เปิดใช้งาน</span>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="btn btn-secondary" onclick="closeAdModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="saveAd()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+            document.getElementById('admin-sidebar').classList.toggle('collapsed');
+        });
+
+        function showAddAdModal() {
+            document.getElementById('ad-modal').classList.add('active');
+        }
+
+        function closeAdModal() {
+            document.getElementById('ad-modal').classList.remove('active');
+        }
+
+        function saveSettings() {
+            Utils.toast('บันทึกการตั้งค่าสำเร็จ', 'success');
+        }
+
+        function saveAd() {
+            Utils.toast('เพิ่มโฆษณาสำเร็จ', 'success');
+            closeAdModal();
+        }
+    </script>
+</body>
+
+</html>

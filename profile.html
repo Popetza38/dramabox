@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์ - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <div class="nav-actions">
+                <button class="btn-icon" onclick="Utils.navigate('settings.html')"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content page-content">
+        <section class="profile-header" id="profile-header">
+            <img src="https://ui-avatars.com/api/?name=Guest&background=6366f1&color=fff&size=200" alt="Avatar"
+                class="profile-avatar" id="profile-avatar">
+            <h1 class="profile-name" id="profile-name">ผู้เยี่ยมชม</h1>
+            <p class="profile-status" id="profile-status">ยังไม่ได้เข้าสู่ระบบ</p>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-coins">0</div>
+                    <div class="stat-label">Coins</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-points">0</div>
+                    <div class="stat-label">Points</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-favorites">0</div>
+                    <div class="stat-label">รายการโปรด</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="menu-list">
+            <a href="vip.html" class="menu-item">
+                <i class="fas fa-crown text-vip"></i>
+                <span>VIP สถานะ</span>
+                <span class="badge" id="vip-badge" style="display:none">VIP</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+            <a href="daily-check.html" class="menu-item">
+                <i class="fas fa-calendar-check text-primary"></i>
+                <span>เช็ครายวัน</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+            <a href="topup.html" class="menu-item">
+                <i class="fas fa-wallet"></i>
+                <span>เติมเงิน</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+            <a href="giftcode.html" class="menu-item">
+                <i class="fas fa-gift"></i>
+                <span>แลก Gift Code</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+        </div>
+
+        <div class="menu-list">
+            <a href="history.html" class="menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการดู</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+            <a href="favorites.html" class="menu-item">
+                <i class="fas fa-heart"></i>
+                <span>รายการโปรด</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+        </div>
+
+        <div class="menu-list" id="auth-menu">
+            <a href="login.html" class="menu-item">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>เข้าสู่ระบบ</span>
+                <i class="fas fa-chevron-right chevron"></i>
+            </a>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>หน้าแรก</span></a>
+        <a href="category.html" class="nav-item"><i class="fas fa-compass"></i><span>สำรวจ</span></a>
+        <a href="daily-check.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>เช็ครายวัน</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>ประวัติ</span></a>
+        <a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>โปรไฟล์</span></a>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', updateProfileUI);
+
+        function updateProfileUI() {
+            const user = Auth.getUser();
+            const favorites = Storage.favorites.get();
+            const points = Storage.points.get();
+
+            document.getElementById('stat-points').textContent = points;
+            document.getElementById('stat-favorites').textContent = favorites.length;
+
+            if (user) {
+                document.getElementById('profile-name').textContent = user.name;
+                document.getElementById('profile-avatar').src = user.avatar;
+                document.getElementById('stat-coins').textContent = user.coins || 0;
+
+                if (Auth.isVIP()) {
+                    document.getElementById('profile-status').textContent = `VIP (เหลือ ${Auth.getVIPDays()} วัน)`;
+                    document.getElementById('profile-status').classList.add('vip');
+                    document.getElementById('vip-badge').style.display = 'inline';
+                } else {
+                    document.getElementById('profile-status').textContent = 'สมาชิกทั่วไป';
+                }
+
+                document.getElementById('auth-menu').innerHTML = `
+                    <a href="#" class="menu-item" onclick="Auth.logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                        <i class="fas fa-chevron-right chevron"></i>
+                    </a>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

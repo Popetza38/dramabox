@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เติมเงิน - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="page-title">เติมเงิน</h1>
+            <div style="width:40px"></div>
+        </div>
+    </header>
+
+    <main class="main-content page-content">
+        <div class="topup-form">
+            <h3 style="margin-bottom: var(--spacing-lg); text-align: center;">เติมเงินด้วย QR PromptPay</h3>
+
+            <div class="form-group">
+                <label class="form-label">จำนวนเงิน (บาท)</label>
+                <input type="number" class="form-input" id="topup-amount" placeholder="ระบุจำนวนเงิน" min="10"
+                    step="10">
+            </div>
+
+            <div class="vip-packages" style="margin-bottom: var(--spacing-lg);">
+                <div class="package-card" onclick="setAmount(50)">
+                    <div class="package-duration">50 บาท</div>
+                    <div class="package-price">50 <span>Coins</span></div>
+                </div>
+                <div class="package-card" onclick="setAmount(100)">
+                    <div class="package-duration">100 บาท</div>
+                    <div class="package-price">100 <span>Coins</span></div>
+                </div>
+                <div class="package-card" onclick="setAmount(300)">
+                    <div class="package-duration">300 บาท</div>
+                    <div class="package-price">320 <span>Coins</span></div>
+                </div>
+                <div class="package-card" onclick="setAmount(500)">
+                    <div class="package-duration">500 บาท</div>
+                    <div class="package-price">550 <span>Coins</span></div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-block" id="btn-generate-qr">
+                <i class="fas fa-qrcode"></i> สร้าง QR Code
+            </button>
+        </div>
+
+        <div class="topup-form" id="qr-section" style="display: none;">
+            <div class="qr-display">
+                <div class="qr-code" id="qr-code">
+                    <i class="fas fa-qrcode" style="font-size: 100px; color: #ccc;"></i>
+                </div>
+                <div class="qr-amount" id="qr-amount">0 บาท</div>
+                <p style="color: var(--color-text-muted); margin-top: var(--spacing-sm);">สแกนเพื่อชำระเงิน</p>
+            </div>
+
+            <p style="text-align: center; color: var(--color-text-secondary); margin-bottom: var(--spacing-lg);">
+                หลังชำระเงินแล้ว กรุณารอ 1-5 นาที<br>ระบบจะเติม Coins ให้อัตโนมัติ
+            </p>
+
+            <button class="btn btn-secondary btn-block" onclick="checkPayment()">
+                <i class="fas fa-sync-alt"></i> ตรวจสอบการชำระเงิน
+            </button>
+        </div>
+
+        <div class="menu-list" style="margin-top: var(--spacing-xl);">
+            <div class="menu-item" style="cursor: default;">
+                <i class="fas fa-info-circle"></i>
+                <span>1 บาท = 1 Coin (โบนัสพิเศษเมื่อเติมมาก)</span>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>หน้าแรก</span></a>
+        <a href="category.html" class="nav-item"><i class="fas fa-compass"></i><span>สำรวจ</span></a>
+        <a href="daily-check.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>เช็ครายวัน</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>ประวัติ</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>โปรไฟล์</span></a>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-generate-qr').addEventListener('click', generateQR);
+        });
+
+        function setAmount(amount) {
+            document.getElementById('topup-amount').value = amount;
+            document.querySelectorAll('.package-card').forEach(card => card.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        function generateQR() {
+            const amount = parseInt(document.getElementById('topup-amount').value);
+
+            if (!amount || amount < 10) {
+                Utils.toast('กรุณาระบุจำนวนเงินอย่างน้อย 10 บาท', 'warning');
+                return;
+            }
+
+            const user = Auth.getUser();
+            if (!user) {
+                Utils.toast('กรุณาเข้าสู่ระบบก่อน', 'warning');
+                Utils.navigate('login.html');
+                return;
+            }
+
+            // Show QR section
+            document.getElementById('qr-section').style.display = 'block';
+            document.getElementById('qr-amount').textContent = `${amount} บาท`;
+
+            // Generate QR (mock - in real app, use PromptPay API)
+            const qrUrl = `https://promptpay.io/0812345678/${amount}`;
+            document.getElementById('qr-code').innerHTML = `
+                <img src="${qrUrl}" alt="QR Code" style="max-width: 100%; max-height: 100%;">
+            `;
+
+            Utils.toast('สร้าง QR Code สำเร็จ', 'success');
+        }
+
+        function checkPayment() {
+            Utils.showLoading('กำลังตรวจสอบ...');
+
+            // Mock payment check
+            setTimeout(() => {
+                Utils.hideLoading();
+
+                // In real app, check with SlipsPlus API
+                Swal.fire({
+                    icon: 'info',
+                    title: 'กำลังดำเนินการ',
+                    text: 'หากชำระเงินแล้ว กรุณารอระบบตรวจสอบ 1-5 นาที',
+                    background: '#1a1a25',
+                    color: '#ffffff',
+                    confirmButtonColor: '#6366f1'
+                });
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

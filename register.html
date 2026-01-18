@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมัครสมาชิก - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav" style="background: transparent; border: none;">
+        <div class="nav-container">
+            <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <div style="width:40px"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="auth-container">
+            <div class="auth-header">
+                <i class="fas fa-play-circle auth-logo"></i>
+                <h1 class="auth-title">สมัครสมาชิก</h1>
+                <p style="color: var(--color-text-secondary);">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
+            </div>
+
+            <form class="auth-form" id="register-form">
+                <div class="form-group">
+                    <label class="form-label">ชื่อผู้ใช้</label>
+                    <input type="text" class="form-input" id="name" placeholder="ชื่อที่ต้องการแสดง" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">อีเมล</label>
+                    <input type="email" class="form-input" id="email" placeholder="example@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">รหัสผ่าน</label>
+                    <input type="password" class="form-input" id="password" placeholder="อย่างน้อย 6 ตัวอักษร"
+                        minlength="6" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ยืนยันรหัสผ่าน</label>
+                    <input type="password" class="form-input" id="confirm-password" placeholder="กรอกรหัสผ่านอีกครั้ง"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="agree-terms" required style="margin-top: 4px;">
+                        <span style="font-size: 14px; color: var(--color-text-secondary);">
+                            ฉันยอมรับ <a href="#" style="color: var(--color-primary);">ข้อตกลงการใช้งาน</a> และ
+                            <a href="#" style="color: var(--color-primary);">นโยบายความเป็นส่วนตัว</a>
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    <i class="fas fa-user-plus"></i> สมัครสมาชิก
+                </button>
+            </form>
+
+            <p class="auth-footer">
+                มีบัญชีอยู่แล้ว? <a href="login.html">เข้าสู่ระบบ</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (Auth.isLoggedIn()) {
+            Utils.navigate('index.html');
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                Utils.toast('รหัสผ่านไม่ตรงกัน', 'error');
+                return;
+            }
+
+            Utils.showLoading('กำลังสร้างบัญชี...');
+
+            try {
+                await Auth.register(email, password, name);
+                Utils.hideLoading();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สมัครสมาชิกสำเร็จ!',
+                    text: 'ยินดีต้อนรับสู่ DramPop',
+                    background: '#1a1a25',
+                    color: '#ffffff',
+                    confirmButtonColor: '#6366f1'
+                }).then(() => {
+                    Utils.navigate('index.html');
+                });
+            } catch (error) {
+                Utils.hideLoading();
+                Utils.toast(error.message, 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,116 +1,91 @@
-/**
- * DramaBox API Service
- * ใช้สำหรับเรียกข้อมูลจาก API
- */
+// ========================================
+// API Module
+// ========================================
 
-const API_BASE = 'https://apith-git-main-popetza38s-projects.vercel.app';
+const API = {
+    // Base fetch helper
+    async fetch(endpoint, options = {}) {
+        try {
+            const url = `${CONFIG.API_BASE_URL}${endpoint}`;
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
 
-/**
- * Fetch wrapper with error handling
- */
-async function fetchAPI(endpoint) {
-    try {
-        const response = await fetch(`${API_BASE}${endpoint}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
         }
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'API request failed');
-        }
+    },
+
+    // Get home page dramas
+    async getHome(page = 1) {
+        const data = await this.fetch(`/api/home?page=${page}`);
         return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
+    },
+
+    // Get recommendations
+    async getRecommend() {
+        const data = await this.fetch('/api/recommend');
+        return data;
+    },
+
+    // Get VIP/Theater dramas
+    async getVIP() {
+        const data = await this.fetch('/api/vip');
+        return data;
+    },
+
+    // Get all categories
+    async getCategories() {
+        const data = await this.fetch('/api/categories');
+        return data;
+    },
+
+    // Get dramas by category
+    async getByCategory(categoryId, page = 1) {
+        const data = await this.fetch(`/api/category/${categoryId}?page=${page}`);
+        return data;
+    },
+
+    // Search dramas
+    async search(query) {
+        const data = await this.fetch(`/api/search?keyword=${encodeURIComponent(query)}`);
+        return data;
+    },
+
+    // Get drama detail
+    async getDetail(bookId) {
+        const data = await this.fetch(`/api/detail/${bookId}/v2`);
+        return data;
+    },
+
+    // Get chapters/episodes
+    async getChapters(bookId) {
+        const data = await this.fetch(`/api/chapters/${bookId}`);
+        return data;
+    },
+
+    // Get stream URL
+    async getStream(bookId, chapterId) {
+        const data = await this.fetch(`/api/stream?bookId=${bookId}&chapterId=${chapterId}`);
+        return data;
+    },
+
+    // Download all chapters info
+    async downloadAll(bookId) {
+        const data = await this.fetch(`/download/${bookId}`);
+        return data;
     }
-}
-
-/**
- * ดึงรายการซีรีส์หน้าหลัก
- */
-async function getHome() {
-    return fetchAPI('/api/home');
-}
-
-/**
- * ดึงรายการซีรีส์แนะนำ
- */
-async function getRecommend() {
-    return fetchAPI('/api/recommend');
-}
-
-/**
- * ดึงรายการ VIP Channel
- */
-async function getVIP() {
-    return fetchAPI('/api/vip');
-}
-
-/**
- * ดึงรายละเอียดซีรีส์
- * @param {string} bookId - ID ของซีรีส์
- */
-async function getDetail(bookId) {
-    return fetchAPI(`/api/detail/${bookId}/v2`);
-}
-
-/**
- * ดึงรายการตอนของซีรีส์
- * @param {string} bookId - ID ของซีรีส์
- */
-async function getChapters(bookId) {
-    return fetchAPI(`/api/chapters/${bookId}`);
-}
-
-/**
- * ดึง URL สำหรับ streaming
- * @param {string} itemId - ID ของตอน
- */
-async function getStreamUrl(itemId) {
-    return fetchAPI(`/api/stream?itemId=${itemId}`);
-}
-
-/**
- * ค้นหาซีรีส์
- * @param {string} keyword - คำค้นหา
- */
-async function search(keyword) {
-    return fetchAPI(`/api/search?keyword=${encodeURIComponent(keyword)}`);
-}
-
-/**
- * ดึงรายการหมวดหมู่ทั้งหมด
- */
-async function getCategories() {
-    return fetchAPI('/api/categories');
-}
-
-/**
- * ดึงซีรีส์ตามหมวดหมู่
- * @param {number} categoryId - ID ของหมวดหมู่
- */
-async function getDramasByCategory(categoryId) {
-    return fetchAPI(`/api/category/${categoryId}`);
-}
-
-/**
- * ดึงข้อมูลทุกตอนสำหรับ download
- * @param {string} bookId - ID ของซีรีส์
- */
-async function getDownloadAll(bookId) {
-    return fetchAPI(`/download/${bookId}`);
-}
-
-// Export functions สำหรับใช้ใน modules อื่น
-window.DramaAPI = {
-    getHome,
-    getRecommend,
-    getVIP,
-    getDetail,
-    getChapters,
-    getStreamUrl,
-    search,
-    getCategories,
-    getDramasByCategory,
-    getDownloadAll
 };
+
+// Make API globally available
+window.API = API;

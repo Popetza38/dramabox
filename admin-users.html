@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการผู้ใช้ - Admin DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>แผงควบคุม</span></a>
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link"><i class="fas fa-film"></i><span>จัดการซีรีส์</span></a>
+            <a href="admin-import.html" class="nav-link"><i class="fas fa-cloud-download-alt"></i><span>ดึงซีรีส์จาก
+                    API</span></a>
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link"><i class="fas fa-ad"></i><span>จัดการโฆษณา</span></a>
+            <a href="admin-vip.html" class="nav-link"><i class="fas fa-crown"></i><span>แพ็กเกจ VIP</span></a>
+            <a href="admin-giftcode.html" class="nav-link"><i class="fas fa-gift"></i><span>Gift Code</span></a>
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link active"><i class="fas fa-users"></i><span>จัดการผู้ใช้</span></a>
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i><span>ตั้งค่าเว็บไซต์</span></a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">จัดการผู้ใช้</h1>
+        </header>
+
+        <main class="admin-content">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>1,234</h3>
+                        <p>ผู้ใช้ทั้งหมด</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>89</h3>
+                        <p>สมาชิก VIP</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>45</h3>
+                        <p>สมาชิกใหม่วันนี้</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="admin-section">
+                <div class="admin-toolbar">
+                    <div class="admin-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="ค้นหาผู้ใช้...">
+                    </div>
+                    <div class="admin-filter">
+                        <select id="filter-status">
+                            <option value="">ทุกสถานะ</option>
+                            <option value="vip">VIP</option>
+                            <option value="normal">ทั่วไป</option>
+                            <option value="banned">ถูกแบน</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ผู้ใช้</th>
+                                <th>อีเมล</th>
+                                <th>สถานะ</th>
+                                <th>Coins</th>
+                                <th>Points</th>
+                                <th>สมัครเมื่อ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table">
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="https://ui-avatars.com/api/?name=John&background=6366f1&color=fff"
+                                            style="width: 36px; height: 36px; border-radius: 50%;">
+                                        <span>John Doe</span>
+                                    </div>
+                                </td>
+                                <td>john@email.com</td>
+                                <td><span class="badge-tag" style="background: rgba(251,191,36,0.2); color: #fbbf24;"><i
+                                            class="fas fa-crown"></i> VIP</span></td>
+                                <td>250</td>
+                                <td>120</td>
+                                <td>15 ม.ค. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-action" title="เพิ่ม VIP"><i
+                                                class="fas fa-crown"></i></button>
+                                        <button class="btn-action danger" title="แบน"><i
+                                                class="fas fa-ban"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="https://ui-avatars.com/api/?name=Jane&background=ec4899&color=fff"
+                                            style="width: 36px; height: 36px; border-radius: 50%;">
+                                        <span>Jane Smith</span>
+                                    </div>
+                                </td>
+                                <td>jane@email.com</td>
+                                <td><span class="badge-tag">ทั่วไป</span></td>
+                                <td>50</td>
+                                <td>80</td>
+                                <td>18 ม.ค. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-action" title="เพิ่ม VIP"><i
+                                                class="fas fa-crown"></i></button>
+                                        <button class="btn-action danger" title="แบน"><i
+                                                class="fas fa-ban"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="https://ui-avatars.com/api/?name=Test&background=ef4444&color=fff"
+                                            style="width: 36px; height: 36px; border-radius: 50%;">
+                                        <span
+                                            style="text-decoration: line-through; color: var(--color-text-muted);">Test
+                                            User</span>
+                                    </div>
+                                </td>
+                                <td>test@email.com</td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(239,68,68,0.2); color: #f87171;">ถูกแบน</span></td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>10 ม.ค. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="ยกเลิกแบน"><i
+                                                class="fas fa-undo"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+            document.getElementById('admin-sidebar').classList.toggle('collapsed');
+        });
+    </script>
+</body>
+
+</html>

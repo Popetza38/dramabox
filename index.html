@@ -3,313 +3,236 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ดูซีรีส์ออนไลน์ฟรี พากย์ไทย คมชัด HD - DramaBox">
-    <meta name="theme-color" content="#0F0F23">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="description" content="ดูซีรี่ย์ออนไลน์ พากย์ไทย ซับไทย คุณภาพสูง อัพเดทใหม่ทุกวัน">
+    <meta name="keywords" content="ดูหนัง, ดูซีรี่ย์, ซีรี่ย์เกาหลี, ซีรี่ย์จีน, พากย์ไทย, ซับไทย">
+    <title>DramPop - ดูซีรี่ย์ออนไลน์ฟรี</title>
 
-    <title>DramaBox - ดูซีรีส์ออนไลน์</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
-
-    <!-- Google Fonts - Niramit -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        /* Additional Index Page Styles */
-        .hero-slider {
-            position: relative;
-            height: 500px;
-            margin: var(--space-md);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-        }
-
-        .hero-slide {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .hero-slide.active {
-            opacity: 1;
-        }
-
-        .hero-slide-bg {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .hero-slide-bg::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(15, 15, 35, 1) 0%, transparent 50%);
-        }
-
-        .hero-slide-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: var(--space-2xl);
-        }
-
-        .hero-indicators {
-            position: absolute;
-            bottom: var(--space-lg);
-            right: var(--space-2xl);
-            display: flex;
-            gap: var(--space-sm);
-        }
-
-        .hero-indicator {
-            width: 40px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .hero-indicator.active {
-            background: var(--primary);
-            width: 60px;
-        }
-
-        /* View All Page Styles */
-        .view-all-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: var(--bg-dark);
-            overflow-y: auto;
-        }
-
-        .view-all-modal.show {
-            display: block;
-        }
-
-        .view-all-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            padding: var(--space-md);
-            background: var(--bg-glass);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .view-all-back {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: var(--bg-card);
-            border: none;
-            border-radius: var(--radius-full);
-            color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .view-all-title {
-            flex: 1;
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-        }
-
-        .view-all-content {
-            padding: var(--space-lg);
-        }
-
-        @media (max-width: 768px) {
-            .hero-slider {
-                height: 380px;
-                margin: var(--space-sm);
-            }
-
-            .hero-slide-content {
-                padding: var(--space-lg);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/home.css">
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-logo">
+                <i class="fas fa-play-circle"></i>
+            </div>
+        </div>
+        <p class="loading-text">กำลังโหลด...</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-container">
             <a href="index.html" class="logo">
-                <div class="logo-icon">
-                    <i data-lucide="play"></i>
-                </div>
-                <span>DramaBox</span>
+                <i class="fas fa-play-circle"></i>
+                <span>DramPop</span>
             </a>
 
-            <!-- Search Bar -->
-            <form class="search-bar" onsubmit="handleSearch(event)">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="search-input" placeholder="ค้นหาซีรีส์..." autocomplete="off">
-            </form>
-
-            <!-- Desktop Nav -->
-            <nav class="nav-desktop">
-                <a href="index.html" class="active">
-                    <i data-lucide="home"></i>
-                    หน้าหลัก
+            <!-- PC Menu (Desktop Only) -->
+            <nav class="pc-menu">
+                <a href="index.html" class="pc-menu-item active">
+                    <i class="fas fa-home"></i>
+                    <span>หน้าแรก</span>
                 </a>
-                <a href="#categories">
-                    <i data-lucide="grid-3x3"></i>
-                    หมวดหมู่
+                <a href="category.html" class="pc-menu-item">
+                    <i class="fas fa-compass"></i>
+                    <span>สำรวจ</span>
+                </a>
+                <a href="category.html?type=dubbed" class="pc-menu-item">
+                    <i class="fas fa-microphone-alt"></i>
+                    <span>พากย์ไทย</span>
+                </a>
+                <a href="category.html?type=popular" class="pc-menu-item">
+                    <i class="fas fa-fire"></i>
+                    <span>ยอดนิยม</span>
                 </a>
             </nav>
+
+            <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="ค้นหาซีรี่ย์...">
+            </div>
+            <div class="nav-actions">
+                <button class="btn-icon" id="btn-notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </button>
+                <div class="user-menu" id="user-menu">
+                    <img src="https://ui-avatars.com/api/?name=Guest&background=6366f1&color=fff" alt="User"
+                        class="user-avatar">
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="user-info">
+                            <img src="https://ui-avatars.com/api/?name=Guest&background=6366f1&color=fff" alt="User">
+                            <div>
+                                <h4 id="user-name">ผู้เยี่ยมชม</h4>
+                                <span class="user-status" id="user-status">สมาชิกทั่วไป</span>
+                            </div>
+                        </div>
+                        <ul class="dropdown-menu">
+                            <li><a href="profile.html"><i class="fas fa-user"></i> โปรไฟล์</a></li>
+                            <li><a href="vip.html"><i class="fas fa-crown"></i> VIP สถานะ</a></li>
+                            <li><a href="history.html"><i class="fas fa-history"></i> ประวัติการดู</a></li>
+                            <li><a href="favorites.html"><i class="fas fa-heart"></i> รายการโปรด</a></li>
+                            <li><a href="daily-check.html"><i class="fas fa-calendar-check"></i> เช็ครายวัน</a></li>
+                            <li><a href="topup.html"><i class="fas fa-wallet"></i> เติมเงิน</a></li>
+                            <li><a href="giftcode.html"><i class="fas fa-gift"></i> แลก Gift Code</a></li>
+                            <li class="divider"></li>
+                            <li id="auth-action"><a href="login.html"><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main>
-        <!-- Hero Slider -->
-        <section id="hero" class="hero-slider">
-            <!-- Content loaded via SweetAlert loading -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section" id="hero-section">
+            <div class="hero-slider" id="hero-slider">
+                <!-- Hero slides will be inserted here -->
+            </div>
+            <div class="hero-indicators" id="hero-indicators">
+                <!-- Indicators will be inserted here -->
+            </div>
+            <div class="hero-overlay"></div>
         </section>
 
-        <!-- Continue Watching Section -->
-        <section id="continue-watching-section" class="drama-section container" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i data-lucide="clock"></i>
-                    ดูต่อ
-                </h2>
-                <button onclick="clearWatchHistory()" class="view-all" style="color: var(--text-muted);">
-                    ล้างประวัติ
-                </button>
+        <!-- Category Rows -->
+        <section class="content-section">
+            <!-- Thai Dubbed -->
+            <div class="category-row" id="category-dubbed">
+                <div class="category-header">
+                    <h2><i class="fas fa-microphone-alt"></i> พากย์ไทย</h2>
+                    <a href="category.html?type=dubbed" class="see-all">ดูทั้งหมด <i
+                            class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="series-slider" id="dubbed-slider">
+                    <!-- Series cards will be inserted here -->
+                </div>
             </div>
-            <div id="continue-watching-grid" class="continue-watching-scroll"></div>
-        </section>
 
-        <!-- Categories Section -->
-        <section id="categories" class="categories-section container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i data-lucide="bookmark"></i>
-                    หมวดหมู่
-                </h2>
+            <!-- Thai Sub -->
+            <div class="category-row" id="category-sub">
+                <div class="category-header">
+                    <h2><i class="fas fa-closed-captioning"></i> ซับไทย</h2>
+                    <a href="category.html?type=sub" class="see-all">ดูทั้งหมด <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="series-slider" id="sub-slider">
+                    <!-- Series cards will be inserted here -->
+                </div>
             </div>
-            <div id="categories-scroll" class="categories-scroll"></div>
-        </section>
 
-        <!-- Popular Section -->
-        <section class="drama-section container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i data-lucide="flame"></i>
-                    ซีรีส์ยอดนิยม
-                </h2>
-                <button onclick="showViewAll('popular', 'ซีรีส์ยอดนิยม')" class="view-all">
-                    ดูทั้งหมด
-                    <i data-lucide="chevron-right"></i>
-                </button>
+            <!-- New Releases -->
+            <div class="category-row" id="category-new">
+                <div class="category-header">
+                    <h2><i class="fas fa-sparkles"></i> มาใหม่</h2>
+                    <a href="category.html?type=new" class="see-all">ดูทั้งหมด <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="series-slider" id="new-slider">
+                    <!-- Series cards will be inserted here -->
+                </div>
             </div>
-            <div id="popular-grid" class="drama-grid">
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-            </div>
-        </section>
 
-        <!-- Recommend Section -->
-        <section class="drama-section container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i data-lucide="star"></i>
-                    แนะนำสำหรับคุณ
-                </h2>
-                <button onclick="showViewAll('recommend', 'แนะนำสำหรับคุณ')" class="view-all">
-                    ดูทั้งหมด
-                    <i data-lucide="chevron-right"></i>
-                </button>
+            <!-- Popular -->
+            <div class="category-row" id="category-popular">
+                <div class="category-header">
+                    <h2><i class="fas fa-fire"></i> ยอดนิยม</h2>
+                    <a href="category.html?type=popular" class="see-all">ดูทั้งหมด <i
+                            class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="series-slider" id="popular-slider">
+                    <!-- Series cards will be inserted here -->
+                </div>
             </div>
-            <div id="recommend-grid" class="drama-grid">
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
-                <div class="skeleton skeleton-card"></div>
+
+            <!-- Recommendations -->
+            <div class="category-row" id="category-recommend">
+                <div class="category-header">
+                    <h2><i class="fas fa-star"></i> แนะนำสำหรับคุณ</h2>
+                    <a href="category.html?type=recommend" class="see-all">ดูทั้งหมด <i
+                            class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="series-slider" id="recommend-slider">
+                    <!-- Series cards will be inserted here -->
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- View All Modal -->
-    <div id="view-all-modal" class="view-all-modal">
-        <div class="view-all-header">
-            <button class="view-all-back" onclick="closeViewAll()">
-                <i data-lucide="arrow-left"></i>
-            </button>
-            <h2 id="view-all-title" class="view-all-title">ดูทั้งหมด</h2>
-        </div>
-        <div class="view-all-content">
-            <div id="view-all-grid" class="drama-grid"></div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2026 DramaBox - ดูซีรีส์ออนไลน์ฟรี พากย์ไทย</p>
-    </footer>
-
     <!-- Bottom Navigation (Mobile) -->
     <nav class="bottom-nav">
-        <a href="index.html" class="bottom-nav-item active">
-            <i data-lucide="home"></i>
-            <span>หน้าหลัก</span>
+        <a href="index.html" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>หน้าแรก</span>
         </a>
-        <a href="search.html" class="bottom-nav-item">
-            <i data-lucide="search"></i>
-            <span>ค้นหา</span>
+        <a href="category.html" class="nav-item">
+            <i class="fas fa-compass"></i>
+            <span>สำรวจ</span>
         </a>
-        <a href="#categories" class="bottom-nav-item">
-            <i data-lucide="grid-3x3"></i>
-            <span>หมวดหมู่</span>
+        <a href="daily-check.html" class="nav-item">
+            <i class="fas fa-calendar-check"></i>
+            <span>เช็ครายวัน</span>
         </a>
-        <a href="#" class="bottom-nav-item">
-            <i data-lucide="heart"></i>
-            <span>รายการโปรด</span>
+        <a href="history.html" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>ประวัติ</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>โปรไฟล์</span>
         </a>
     </nav>
 
+    <!-- Search Modal -->
+    <div class="modal" id="search-modal">
+        <div class="modal-content search-modal-content">
+            <div class="search-header">
+                <button class="btn-back" id="close-search">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="modal-search-input" placeholder="ค้นหาซีรี่ย์...">
+                    <button class="btn-clear" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-placeholder">
+                    <i class="fas fa-search"></i>
+                    <p>ค้นหาซีรี่ย์ที่คุณต้องการดู</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
+    <script src="js/config.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
-    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/home.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav" style="background: transparent; border: none;">
+        <div class="nav-container">
+            <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <div style="width:40px"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="auth-container">
+            <div class="auth-header">
+                <i class="fas fa-play-circle auth-logo"></i>
+                <h1 class="auth-title">เข้าสู่ระบบ</h1>
+                <p style="color: var(--color-text-secondary);">ยินดีต้อนรับกลับมา</p>
+            </div>
+
+            <form class="auth-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label">อีเมล</label>
+                    <input type="email" class="form-input" id="email" placeholder="example@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">รหัสผ่าน</label>
+                    <input type="password" class="form-input" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+                </button>
+            </form>
+
+            <div class="auth-divider">หรือ</div>
+
+            <button class="btn btn-secondary btn-lg btn-block" onclick="loginAsGuest()">
+                <i class="fas fa-user"></i> เข้าใช้งานแบบผู้เยี่ยมชม
+            </button>
+
+            <p class="auth-footer">
+                ยังไม่มีบัญชี? <a href="register.html">สมัครสมาชิก</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (Auth.isLoggedIn()) {
+            Utils.navigate('index.html');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            Utils.showLoading('กำลังเข้าสู่ระบบ...');
+
+            try {
+                await Auth.login(email, password);
+                Utils.hideLoading();
+                Utils.toast('เข้าสู่ระบบสำเร็จ', 'success');
+                setTimeout(() => Utils.navigate('index.html'), 1000);
+            } catch (error) {
+                Utils.hideLoading();
+                Utils.toast(error.message, 'error');
+            }
+        });
+
+        function loginAsGuest() {
+            Utils.navigate('index.html');
+        }
+    </script>
+</body>
+
+</html>

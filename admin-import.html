@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ดึงซีรีส์จาก API - Admin DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>แผงควบคุม</span></a>
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link"><i class="fas fa-film"></i><span>จัดการซีรีส์</span></a>
+            <a href="admin-import.html" class="nav-link active"><i
+                    class="fas fa-cloud-download-alt"></i><span>ดึงซีรีส์จาก API</span></a>
+            <a href="admin-categories.html" class="nav-link"><i class="fas fa-tags"></i><span>จัดการหมวดหมู่</span></a>
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link"><i class="fas fa-ad"></i><span>จัดการโฆษณา</span></a>
+            <a href="admin-vip.html" class="nav-link"><i class="fas fa-crown"></i><span>แพ็กเกจ VIP</span></a>
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link"><i class="fas fa-users"></i><span>จัดการผู้ใช้</span></a>
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i><span>ตั้งค่าเว็บไซต์</span></a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">ดึงซีรีส์จาก API</h1>
+        </header>
+
+        <main class="admin-content">
+            <div class="admin-section">
+                <h2 class="section-title"><i class="fas fa-cloud-download-alt"></i> แหล่งข้อมูล API</h2>
+                <p style="color: var(--color-text-secondary); margin-bottom: var(--spacing-lg);">
+                    ดึงข้อมูลซีรีส์จาก Dramabox API โดยอัตโนมัติ
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">API URL</label>
+                    <input type="text" class="form-input" id="api-url"
+                        value="https://apith-git-main-popetza38s-projects.vercel.app" readonly>
+                </div>
+
+                <div class="quick-actions" style="margin-bottom: var(--spacing-xl);">
+                    <button class="action-card" onclick="fetchHome()">
+                        <i class="fas fa-home"></i>
+                        <span>ซีรีส์หน้าแรก</span>
+                    </button>
+                    <button class="action-card" onclick="fetchRecommend()">
+                        <i class="fas fa-star"></i>
+                        <span>ซีรีส์แนะนำ</span>
+                    </button>
+                    <button class="action-card" onclick="fetchVIP()">
+                        <i class="fas fa-crown"></i>
+                        <span>ซีรีส์ VIP</span>
+                    </button>
+                    <button class="action-card" onclick="fetchCategories()">
+                        <i class="fas fa-tags"></i>
+                        <span>หมวดหมู่</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2 class="section-title"><i class="fas fa-search"></i> ค้นหาซีรีส์</h2>
+                <div class="admin-toolbar">
+                    <div class="admin-search" style="flex: 1;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-query" placeholder="ค้นหาซีรีส์...">
+                    </div>
+                    <button class="btn btn-primary" onclick="searchSeries()">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section" id="results-section" style="display: none;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+                    <h2 class="section-title" style="margin: 0;" id="results-title">ผลลัพธ์</h2>
+                    <button class="btn btn-primary" id="btn-import-all" onclick="importAll()">
+                        <i class="fas fa-download"></i> Import ทั้งหมด
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+                                <th>ซีรีส์</th>
+                                <th>ตอน</th>
+                                <th>ยอดวิว</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let fetchedData = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+                document.getElementById('admin-sidebar').classList.toggle('collapsed');
+            });
+
+            document.getElementById('search-query').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchSeries();
+            });
+        });
+
+        async function fetchHome() {
+            Utils.showLoading('กำลังดึงข้อมูล...');
+            try {
+                const result = await API.getHome();
+                Utils.hideLoading();
+                if (result?.success) {
+                    showResults('ซีรีส์หน้าแรก', result.data);
+                }
+            } catch (e) {
+                Utils.hideLoading();
+                Utils.toast('เกิดข้อผิดพลาด', 'error');
+            }
+        }
+
+        async function fetchRecommend() {
+            Utils.showLoading('กำลังดึงข้อมูล...');
+            try {
+                const result = await API.getRecommend();
+                Utils.hideLoading();
+                if (result?.success) {
+                    showResults('ซีรีส์แนะนำ', result.data.map(d => ({
+                        id: d.bookId,
+                        name: d.bookName,
+                        cover: d.coverWap,
+                        chapterCount: d.chapterCount,
+                        playCount: d.playCount
+                    })));
+                }
+            } catch (e) {
+                Utils.hideLoading();
+                Utils.toast('เกิดข้อผิดพลาด', 'error');
+            }
+        }
+
+        async function fetchVIP() {
+            Utils.showLoading('กำลังดึงข้อมูล...');
+            try {
+                const result = await API.getVIP();
+                Utils.hideLoading();
+                if (result?.success) {
+                    showResults('ซีรีส์ VIP', result.data);
+                }
+            } catch (e) {
+                Utils.hideLoading();
+                Utils.toast('เกิดข้อผิดพลาด', 'error');
+            }
+        }
+
+        async function fetchCategories() {
+            Utils.showLoading('กำลังดึงข้อมูล...');
+            try {
+                const result = await API.getCategories();
+                Utils.hideLoading();
+                if (result?.success) {
+                    Swal.fire({
+                        title: 'หมวดหมู่ทั้งหมด',
+                        html: `<div style="text-align: left; max-height: 300px; overflow-y: auto;">
+                            ${result.data.map(c => `<div style="padding: 8px; border-bottom: 1px solid #333;">
+                                <strong>${c.name}</strong> <span style="color: #888;">(ID: ${c.id})</span>
+                            </div>`).join('')}
+                        </div>`,
+                        background: '#1a1a25',
+                        color: '#ffffff',
+                        confirmButtonColor: '#6366f1'
+                    });
+                }
+            } catch (e) {
+                Utils.hideLoading();
+                Utils.toast('เกิดข้อผิดพลาด', 'error');
+            }
+        }
+
+        async function searchSeries() {
+            const query = document.getElementById('search-query').value.trim();
+            if (!query) {
+                Utils.toast('กรุณากรอกคำค้นหา', 'warning');
+                return;
+            }
+
+            Utils.showLoading('กำลังค้นหา...');
+            try {
+                const result = await API.search(query);
+                Utils.hideLoading();
+                if (result?.success) {
+                    showResults(`ผลการค้นหา: "${query}"`, result.data.map(d => ({
+                        id: d.bookId || d.id,
+                        name: d.bookName || d.name,
+                        cover: d.coverWap || d.cover,
+                        chapterCount: d.chapterCount,
+                        playCount: d.playCount
+                    })));
+                }
+            } catch (e) {
+                Utils.hideLoading();
+                Utils.toast('เกิดข้อผิดพลาด', 'error');
+            }
+        }
+
+        function showResults(title, data) {
+            fetchedData = data;
+            document.getElementById('results-title').textContent = `${title} (${data.length} รายการ)`;
+            document.getElementById('results-section').style.display = 'block';
+
+            const tbody = document.getElementById('results-body');
+            tbody.innerHTML = data.map((d, i) => `
+                <tr>
+                    <td><input type="checkbox" class="item-checkbox" data-index="${i}"></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${d.cover}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                            <div>
+                                <div style="font-weight: 500; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    ${Utils.escapeHtml(d.name)}
+                                </div>
+                                <div style="font-size: 12px; color: var(--color-text-muted);">ID: ${d.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${d.chapterCount || 0}</td>
+                    <td>${d.playCount || '0'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="importSingle(${i})">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleSelectAll() {
+            const checked = document.getElementById('select-all').checked;
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        function importSingle(index) {
+            const item = fetchedData[index];
+            Utils.toast(`Import "${item.name}" สำเร็จ (Demo)`, 'success');
+        }
+
+        function importAll() {
+            const checked = document.querySelectorAll('.item-checkbox:checked');
+            if (checked.length === 0) {
+                Utils.toast('กรุณาเลือกรายการที่ต้องการ', 'warning');
+                return;
+            }
+            Utils.toast(`Import ${checked.length} รายการสำเร็จ (Demo)`, 'success');
+        }
+    </script>
+</body>
+
+</html>

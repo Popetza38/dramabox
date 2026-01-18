@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการโปรด - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="page-title">รายการโปรด</h1>
+            <div style="width:40px"></div>
+        </div>
+    </header>
+
+    <main class="main-content page-content">
+        <div class="favorites-list" id="favorites-list">
+            <div class="empty-state">
+                <i class="fas fa-heart"></i>
+                <p>ยังไม่มีรายการโปรด</p>
+                <a href="index.html" class="btn btn-primary">ค้นหาซีรี่ย์</a>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>หน้าแรก</span></a>
+        <a href="category.html" class="nav-item"><i class="fas fa-compass"></i><span>สำรวจ</span></a>
+        <a href="daily-check.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>เช็ครายวัน</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>ประวัติ</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>โปรไฟล์</span></a>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', renderFavorites);
+
+        function renderFavorites() {
+            const container = document.getElementById('favorites-list');
+            const favorites = Storage.favorites.get();
+
+            if (!favorites.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-heart"></i>
+                        <p>ยังไม่มีรายการโปรด</p>
+                        <a href="index.html" class="btn btn-primary">ค้นหาซีรี่ย์</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = favorites.map(item => `
+                <div class="favorite-item" onclick="Utils.navigate('detail.html', { id: '${item.bookId}' })">
+                    <div class="favorite-poster">
+                        <img src="${item.cover}" alt="${Utils.escapeHtml(item.name)}">
+                    </div>
+                    <div class="favorite-info">
+                        <h3>${Utils.escapeHtml(item.name)}</h3>
+                        <p><i class="fas fa-play-circle"></i> ${item.chapterCount || 0} ตอน</p>
+                        <p><i class="fas fa-clock"></i> เพิ่มเมื่อ ${Utils.formatDate(item.addedAt)}</p>
+                    </div>
+                    <button class="btn-remove" onclick="event.stopPropagation(); removeFavorite('${item.bookId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFavorite(bookId) {
+            Storage.favorites.remove(bookId);
+            renderFavorites();
+            Utils.toast('ลบออกจากรายการโปรดแล้ว', 'success');
+        }
+    </script>
+</body>
+
+</html>

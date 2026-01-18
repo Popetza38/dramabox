@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สำรวจ - DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+
+            <!-- PC Menu (Desktop Only) -->
+            <nav class="pc-menu">
+                <a href="index.html" class="pc-menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>หน้าแรก</span>
+                </a>
+                <a href="category.html" class="pc-menu-item active">
+                    <i class="fas fa-compass"></i>
+                    <span>สำรวจ</span>
+                </a>
+                <a href="category.html?type=dubbed" class="pc-menu-item">
+                    <i class="fas fa-microphone-alt"></i>
+                    <span>พากย์ไทย</span>
+                </a>
+                <a href="category.html?type=popular" class="pc-menu-item">
+                    <i class="fas fa-fire"></i>
+                    <span>ยอดนิยม</span>
+                </a>
+            </nav>
+
+            <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="ค้นหาซีรี่ย์...">
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content page-content">
+        <h2 style="margin-bottom: var(--spacing-lg);">หมวดหมู่ทั้งหมด</h2>
+        <div class="category-grid" id="category-grid">
+            <!-- Loading -->
+        </div>
+
+        <div id="series-section" style="margin-top: var(--spacing-xl); display: none;">
+            <h2 id="section-title" style="margin-bottom: var(--spacing-lg);">ซีรี่ย์</h2>
+            <div class="series-grid" id="series-grid">
+                <!-- Series cards -->
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>หน้าแรก</span></a>
+        <a href="category.html" class="nav-item active"><i class="fas fa-compass"></i><span>สำรวจ</span></a>
+        <a href="daily-check.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>เช็ครายวัน</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>ประวัติ</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>โปรไฟล์</span></a>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        const CATEGORY_ICONS = {
+            'พากย์ไทย': 'fa-microphone-alt',
+            'วาย': 'fa-heart',
+            'ความรัก': 'fa-heart',
+            'โรแมนติก': 'fa-kiss-wink-heart',
+            'แฟนตาซี': 'fa-magic',
+            'แอคชั่น': 'fa-fist-raised',
+            'คอมเมดี้': 'fa-laugh',
+            'ดราม่า': 'fa-theater-masks',
+            'ครอบครัว': 'fa-users',
+            'แก้แค้น': 'fa-fire',
+            'ย้อนยุค': 'fa-hourglass-half',
+            'เทพเซียน': 'fa-dragon',
+            'ข้ามมิติ': 'fa-portal-enter',
+            'เกิดใหม่': 'fa-sync',
+            'Mafia': 'fa-user-secret',
+            'แต่งฟ้าผ่า': 'fa-ring'
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+
+            // Check URL params
+            const type = Utils.getUrlParam('type');
+            const catId = Utils.getUrlParam('cat');
+
+            if (catId) {
+                loadCategoryDramas(catId);
+            } else if (type) {
+                loadTypeDramas(type);
+            }
+
+            // Search
+            document.getElementById('search-input').addEventListener('input', Utils.debounce(async (e) => {
+                if (e.target.value.length >= 2) {
+                    await searchDramas(e.target.value);
+                }
+            }, 500));
+        });
+
+        async function loadCategories() {
+            const grid = document.getElementById('category-grid');
+
+            // Show skeleton loading
+            grid.innerHTML = `
+                ${Array(12).fill('').map(() => `
+                    <div class="category-item skeleton-item">
+                        <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+                        <div class="skeleton" style="width: 80px; height: 16px; margin-top: 8px;"></div>
+                    </div>
+                `).join('')}
+            `;
+
+            try {
+                console.log('Loading categories from API...');
+                const result = await API.getCategories();
+                console.log('Categories API response:', result);
+
+                if (result?.success && result.data && Array.isArray(result.data)) {
+                    if (result.data.length === 0) {
+                        grid.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ไม่พบหมวดหมู่</p></div>';
+                        return;
+                    }
+                    grid.innerHTML = result.data.map(cat => `
+                        <a href="category.html?cat=${cat.id}" class="category-item">
+                            <i class="fas ${CATEGORY_ICONS[cat.name] || 'fa-folder'}"></i>
+                            <span>${cat.name}</span>
+                        </a>
+                    `).join('');
+                } else if (result?.data && !Array.isArray(result.data)) {
+                    // Handle different data structure
+                    const categories = Object.values(result.data) || [];
+                    if (categories.length > 0) {
+                        grid.innerHTML = categories.map(cat => `
+                            <a href="category.html?cat=${cat.id || cat.categoryId}" class="category-item">
+                                <i class="fas ${CATEGORY_ICONS[cat.name || cat.categoryName] || 'fa-folder'}"></i>
+                                <span>${cat.name || cat.categoryName}</span>
+                            </a>
+                        `).join('');
+                    } else {
+                        throw new Error('Empty category data');
+                    }
+                } else {
+                    throw new Error('Invalid API response format');
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                // Show error with retry button
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--color-warning);"></i>
+                        <p>ไม่สามารถโหลดหมวดหมู่ได้</p>
+                        <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 8px;">${error.message}</p>
+                        <button onclick="loadCategories()" class="btn btn-primary" style="margin-top: 16px;">
+                            <i class="fas fa-redo"></i> ลองใหม่
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadCategoryDramas(catId) {
+            const section = document.getElementById('series-section');
+            const grid = document.getElementById('series-grid');
+            const title = document.getElementById('section-title');
+
+            section.style.display = 'block';
+            grid.innerHTML = '<div class="empty-state"><div class="loader"><div class="loader-ring"></div></div></div>';
+
+            try {
+                const result = await API.getByCategory(catId);
+                console.log('Category API response:', result);
+
+                if (result?.success && result.data) {
+                    // Get category name from types array
+                    const categoryName = result.data.types?.find(t => t.id === result.data.currentType)?.name || 'หมวดหมู่';
+                    const bookList = result.data.bookList || [];
+
+                    title.textContent = `${categoryName}: ${result.data.total || bookList.length} รายการ`;
+
+                    if (bookList.length > 0) {
+                        renderSeriesGrid(grid, bookList);
+                    } else {
+                        grid.innerHTML = '<div class="empty-state"><i class="fas fa-film"></i><p>ไม่พบซีรี่ย์ในหมวดหมู่นี้</p></div>';
+                    }
+                } else {
+                    throw new Error('Invalid response');
+                }
+            } catch (error) {
+                console.error('Failed to load category dramas:', error);
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>ไม่สามารถโหลดข้อมูลได้</p></div>';
+            }
+        }
+
+        async function loadTypeDramas(type) {
+            const section = document.getElementById('series-section');
+            const grid = document.getElementById('series-grid');
+            const title = document.getElementById('section-title');
+
+            section.style.display = 'block';
+            grid.innerHTML = '<div class="empty-state"><div class="loader"><div class="loader-ring"></div></div></div>';
+
+            let result;
+            let dramas = [];
+
+            try {
+                if (type === 'recommend') {
+                    result = await API.getRecommend();
+                    title.textContent = 'แนะนำสำหรับคุณ';
+                    dramas = result?.data || [];
+                } else if (type === 'dubbed') {
+                    result = await API.getByCategory(683);
+                    title.textContent = 'พากย์ไทย';
+                    dramas = result?.data?.bookList || [];
+                } else if (type === 'popular') {
+                    result = await API.getHome();
+                    title.textContent = 'ยอดนิยม';
+                    dramas = result?.data || [];
+                } else if (type === 'new') {
+                    result = await API.getHome();
+                    title.textContent = 'มาใหม่';
+                    dramas = result?.data || [];
+                } else {
+                    result = await API.getHome();
+                    title.textContent = 'ซีรี่ย์';
+                    dramas = result?.data || [];
+                }
+
+                console.log('Type dramas result:', result);
+
+                if (dramas.length > 0) {
+                    renderSeriesGrid(grid, dramas);
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><i class="fas fa-film"></i><p>ไม่พบซีรี่ย์</p></div>';
+                }
+            } catch (error) {
+                console.error('Failed to load type dramas:', error);
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>ไม่สามารถโหลดข้อมูลได้</p></div>';
+            }
+        }
+
+        async function searchDramas(query) {
+            const section = document.getElementById('series-section');
+            const grid = document.getElementById('series-grid');
+            const title = document.getElementById('section-title');
+
+            section.style.display = 'block';
+            title.textContent = `ผลการค้นหา: "${query}"`;
+            grid.innerHTML = '<div class="empty-state"><div class="loader"><div class="loader-ring"></div></div></div>';
+
+            try {
+                const result = await API.search(query);
+
+                if (result?.success && result.data?.length) {
+                    renderSeriesGrid(grid, result.data);
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>ไม่พบผลลัพธ์</p></div>';
+                }
+            } catch (error) {
+                grid.innerHTML = '<div class="empty-state"><p>เกิดข้อผิดพลาด</p></div>';
+            }
+        }
+
+        function renderSeriesGrid(container, dramas) {
+            container.innerHTML = `
+                <style>
+                    .series-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                        gap: var(--spacing-md);
+                    }
+                </style>
+                ${dramas.map(drama => {
+                const id = drama.bookId || drama.id;
+                const name = drama.bookName || drama.name;
+                const cover = drama.coverWap || drama.cover;
+
+                return `
+                        <a href="detail.html?id=${id}" class="series-card">
+                            <div class="series-poster">
+                                <img src="${cover}" alt="${Utils.escapeHtml(name)}" loading="lazy">
+                                <div class="series-play-overlay">
+                                    <div class="series-play-btn"><i class="fas fa-play"></i></div>
+                                </div>
+                                <span class="series-episodes">${drama.chapterCount || 0} ตอน</span>
+                            </div>
+                            <div class="series-info">
+                                <h3 class="series-title">${Utils.escapeHtml(name)}</h3>
+                                <p class="series-views"><i class="fas fa-eye"></i> ${drama.playCount || '0'}</p>
+                            </div>
+                        </a>
+                    `;
+            }).join('')}
+            `;
+        }
+    </script>
+</body>
+
+</html>

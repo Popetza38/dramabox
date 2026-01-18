@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการ Gift Code - Admin DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>แผงควบคุม</span></a>
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link"><i class="fas fa-film"></i><span>จัดการซีรีส์</span></a>
+            <a href="admin-import.html" class="nav-link"><i class="fas fa-cloud-download-alt"></i><span>ดึงซีรีส์จาก
+                    API</span></a>
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link"><i class="fas fa-ad"></i><span>จัดการโฆษณา</span></a>
+            <a href="admin-vip.html" class="nav-link"><i class="fas fa-crown"></i><span>แพ็กเกจ VIP</span></a>
+            <a href="admin-giftcode.html" class="nav-link active"><i class="fas fa-gift"></i><span>Gift Code</span></a>
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link"><i class="fas fa-users"></i><span>จัดการผู้ใช้</span></a>
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i><span>ตั้งค่าเว็บไซต์</span></a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">จัดการ Gift Code</h1>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showGenerateModal()">
+                    <i class="fas fa-plus"></i> สร้าง Gift Code
+                </button>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>150</h3>
+                        <p>โค้ดทั้งหมด</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>89</h3>
+                        <p>ถูกใช้งาน</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>61</h3>
+                        <p>ยังไม่ใช้งาน</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gift Codes Table -->
+            <div class="admin-section">
+                <h2 class="section-title"><i class="fas fa-list"></i> รายการ Gift Code</h2>
+                <div class="admin-toolbar">
+                    <div class="admin-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="ค้นหาโค้ด...">
+                    </div>
+                    <div class="admin-filter">
+                        <select id="filter-type">
+                            <option value="">ทุกประเภท</option>
+                            <option value="vip">VIP</option>
+                            <option value="coins">Coins</option>
+                            <option value="points">Points</option>
+                        </select>
+                    </div>
+                    <div class="admin-filter">
+                        <select id="filter-status">
+                            <option value="">ทุกสถานะ</option>
+                            <option value="active">ใช้งานได้</option>
+                            <option value="used">ใช้งานแล้ว</option>
+                            <option value="expired">หมดอายุ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>โค้ด</th>
+                                <th>ประเภท</th>
+                                <th>มูลค่า</th>
+                                <th>สถานะ</th>
+                                <th>วันหมดอายุ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codes-table">
+                            <tr>
+                                <td><code style="color: var(--color-primary);">VIP7DAYS</code></td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(251,191,36,0.2); color: #fbbf24;">VIP</span></td>
+                                <td>7 วัน</td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(34,197,94,0.2); color: #4ade80;">ใช้งานได้</span></td>
+                                <td>31 ม.ค. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="คัดลอก"><i class="fas fa-copy"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code style="color: var(--color-primary);">COIN100</code></td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(99,102,241,0.2); color: #818cf8;">Coins</span></td>
+                                <td>100 Coins</td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(34,197,94,0.2); color: #4ade80;">ใช้งานได้</span></td>
+                                <td>28 ก.พ. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="คัดลอก"><i class="fas fa-copy"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code style="color: var(--color-text-muted);">WELCOME50</code></td>
+                                <td><span class="badge-tag"
+                                        style="background: rgba(236,72,153,0.2); color: #f472b6;">Points</span></td>
+                                <td>50 Points</td>
+                                <td><span class="badge-tag">ใช้งานแล้ว</span></td>
+                                <td>15 ม.ค. 2026</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-action" title="คัดลอก" disabled><i
+                                                class="fas fa-copy"></i></button>
+                                        <button class="btn-action danger" title="ลบ"><i
+                                                class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Generate Modal -->
+    <div class="admin-modal" id="generate-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3>สร้าง Gift Code</h3>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="form-group">
+                    <label class="form-label">ประเภท</label>
+                    <select class="form-input" id="code-type">
+                        <option value="vip">VIP (วัน)</option>
+                        <option value="coins">Coins</option>
+                        <option value="points">Points</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">มูลค่า</label>
+                    <input type="number" class="form-input" id="code-value" min="1" value="7">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">จำนวนโค้ด</label>
+                    <input type="number" class="form-input" id="code-count" min="1" max="100" value="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">วันหมดอายุ</label>
+                    <input type="date" class="form-input" id="code-expiry">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">โค้ดกำหนดเอง (ไม่บังคับ)</label>
+                    <input type="text" class="form-input" id="custom-code" placeholder="ปล่อยว่างเพื่อสร้างอัตโนมัติ"
+                        style="text-transform: uppercase;">
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="generateCode()">
+                    <i class="fas fa-magic"></i> สร้างโค้ด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+            document.getElementById('admin-sidebar').classList.toggle('collapsed');
+        });
+
+        // Set default expiry date
+        const expiry = document.getElementById('code-expiry');
+        const date = new Date();
+        date.setMonth(date.getMonth() + 1);
+        expiry.value = date.toISOString().split('T')[0];
+
+        function showGenerateModal() {
+            document.getElementById('generate-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('generate-modal').classList.remove('active');
+        }
+
+        function generateCode() {
+            const type = document.getElementById('code-type').value;
+            const value = document.getElementById('code-value').value;
+            const count = document.getElementById('code-count').value;
+            const customCode = document.getElementById('custom-code').value;
+
+            if (customCode) {
+                Utils.toast(`สร้างโค้ด "${customCode.toUpperCase()}" สำเร็จ`, 'success');
+            } else {
+                Utils.toast(`สร้างโค้ด ${count} รายการสำเร็จ`, 'success');
+            }
+            closeModal();
+        }
+    </script>
+</body>
+
+</html>

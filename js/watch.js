@@ -1,969 +1,683 @@
-/**
- * DramaBox - Watch Page Script
- * หน้าดูวิดีโอ - Fixed Version
- */
+// ========================================
+// Watch Page Script
+// ========================================
 
-let currentDrama = null;
-let chapters = [];
-let currentEpisodeIndex = 0;
+// State
+let bookId = null;
+let chapterId = null;
+let episodeNum = 1;
+let seriesData = null;
+let chaptersData = [];
+let currentChapterIndex = 0;
 let hls = null;
+
+// Player state
+let isPlaying = false;
+let isMuted = false;
+let volume = 1;
 let controlsTimeout = null;
+let nextEpisodeTimeout = null;
+const CONTROLS_HIDE_DELAY = 5000;
 
-// WATCH_HISTORY_KEY is defined in main.js
+// Elements
+const video = document.getElementById('video-player');
+const videoContainer = document.getElementById('video-container');
+const videoOverlay = document.getElementById('video-overlay');
+const videoLoading = document.getElementById('video-loading');
+const videoPlayBtn = document.getElementById('video-play-btn');
+const videoControls = document.getElementById('video-controls');
+const playerTopBar = document.getElementById('player-top-bar');
 
-document.addEventListener('DOMContentLoaded', () => {
-    initWatchPage();
-    setupVideoEvents();
-    setupVideoControls();
-    setupDoubleTapSeek();
-    setupOrientationFullscreen();
-});
-
-/**
- * Initialize Watch Page
- */
-async function initWatchPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookId = urlParams.get('id');
-    const episodeId = urlParams.get('ep');
-    const episodeIndex = parseInt(urlParams.get('index')) || 0;
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    bookId = Utils.getUrlParam('id');
+    chapterId = Utils.getUrlParam('ep');
+    episodeNum = parseInt(Utils.getUrlParam('num')) || 1;
 
     if (!bookId) {
-        showError('ไม่พบข้อมูลวิดีโอ');
+        Utils.toast('ไม่พบข้อมูลซีรี่ย์', 'error');
+        setTimeout(() => history.back(), 1500);
         return;
     }
 
-    currentEpisodeIndex = episodeIndex;
-    showVideoLoading(true);
+    try {
+        await loadSeriesData();
+        await checkAdAndPlay();
+    } catch (error) {
+        console.error('Failed to initialize watch page:', error);
+        Utils.toast('เกิดข้อผิดพลาด', 'error');
+    }
+
+    setupEventListeners();
+    setupKeyboardControls();
+});
+
+// Load series and chapters data
+async function loadSeriesData() {
+    const [detailResult, chaptersResult] = await Promise.all([
+        API.getDetail(bookId),
+        API.getChapters(bookId)
+    ]);
+
+    if (detailResult?.success) {
+        seriesData = detailResult.data;
+        updateSeriesInfo();
+    }
+
+    if (chaptersResult?.success) {
+        chaptersData = chaptersResult.data;
+        renderEpisodesList();
+
+        // Find current chapter index
+        if (chapterId) {
+            currentChapterIndex = chaptersData.findIndex(c => c.chapterId === chapterId);
+            if (currentChapterIndex === -1) currentChapterIndex = 0;
+        }
+
+        updateNavigationButtons();
+    }
+}
+
+// Check ad requirement and play
+async function checkAdAndPlay() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const isVIP = Auth.isVIP();
+    const isUnlocked = Storage.adUnlock.isUnlocked(bookId);
+
+    if (isVIP || isUnlocked) {
+        await loadVideo();
+    } else if (CONFIG.ADS.AD_POPUP_ENABLED) {
+        // Hide loading screen before showing ad modal
+        loadingScreen?.classList.add('hidden');
+        showAdModal();
+    } else {
+        await loadVideo();
+    }
+}
+
+// Show ad modal
+function showAdModal() {
+    const modal = document.getElementById('ad-modal');
+    const skipBtn = document.getElementById('btn-skip-ad');
+    const countdown = document.getElementById('ad-countdown');
+    const skipWithPoints = document.getElementById('btn-skip-with-points');
+    const adLink = document.getElementById('ad-link');
+
+    modal.classList.add('active');
+
+    // Set ad link (mock)
+    adLink.href = 'https://example.com/ad';
+
+    // Countdown
+    let count = 5;
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count <= 0) {
+            clearInterval(countdownInterval);
+            skipBtn.disabled = false;
+            countdown.textContent = 'ข้ามโฆษณา';
+        } else {
+            countdown.textContent = `รอสักครู่ (${count})`;
+        }
+    }, 1000);
+
+    // Skip button
+    skipBtn.onclick = () => {
+        if (!skipBtn.disabled) {
+            Storage.adUnlock.set(bookId);
+            modal.classList.remove('active');
+            loadVideo();
+        }
+    };
+
+    // Skip with points
+    skipWithPoints.onclick = () => {
+        const points = Storage.points.get();
+        if (points >= CONFIG.ADS.SKIP_POINTS_COST) {
+            Storage.points.subtract(CONFIG.ADS.SKIP_POINTS_COST);
+            Storage.adUnlock.set(bookId);
+            modal.classList.remove('active');
+            loadVideo();
+            Utils.toast(`ใช้ ${CONFIG.ADS.SKIP_POINTS_COST} Points ข้ามโฆษณา`, 'success');
+        } else {
+            Utils.toast(`Points ไม่เพียงพอ (ต้องการ ${CONFIG.ADS.SKIP_POINTS_COST})`, 'error');
+        }
+    };
+
+    // Ad link click
+    adLink.onclick = () => {
+        setTimeout(() => {
+            skipBtn.disabled = false;
+            countdown.textContent = 'ข้ามโฆษณา';
+        }, 1000);
+    };
+}
+
+// Load video
+async function loadVideo() {
+    const loadingScreen = document.getElementById('loading-screen');
+    videoLoading.classList.remove('hidden');
 
     try {
-        // Load drama info from cache
-        currentDrama = getCachedDrama(bookId) || { bookId: bookId };
+        // Use videoPath directly from chapters data (faster, no extra API call)
+        const targetChapter = chapterId
+            ? chaptersData.find(c => c.chapterId === chapterId)
+            : chaptersData[0];
 
-        // Fetch chapters from API
-        console.log('Fetching chapters for bookId:', bookId);
-        const chaptersData = await DramaAPI.getChapters(bookId);
-        chapters = chaptersData.data || [];
-        console.log('Loaded chapters:', chapters.length);
+        if (!targetChapter) throw new Error('No chapter found');
 
-        if (chapters.length === 0) {
-            throw new Error('No chapters found');
-        }
+        const streamUrl = targetChapter.videoPath;
 
-        // Render UI
-        renderWatchInfo();
-        renderEpisodeList();
+        if (streamUrl) {
+            initPlayer(streamUrl);
+            chapterId = targetChapter.chapterId;
+            updateEpisodeInfo();
 
-        // Check for continue watching
-        checkContinueWatching();
-
-        // Get current episode
-        const currentEp = chapters[currentEpisodeIndex];
-        console.log('Current episode:', currentEp);
-
-        if (currentEp) {
-            // Try videoPath first, then fall back to API call
-            if (currentEp.videoPath) {
-                console.log('Playing from videoPath:', currentEp.videoPath);
-                await playVideoUrl(currentEp.videoPath);
-            } else if (episodeId) {
-                console.log('Loading video from stream API for episodeId:', episodeId);
-                await loadVideo(episodeId);
-            } else {
-                console.log('No videoPath, trying with chapterId');
-                const chapterId = currentEp.chapterId || currentEp.id;
-                if (chapterId) {
-                    await loadVideo(chapterId);
-                } else {
-                    throw new Error('No video source found');
-                }
-            }
+            // Save to history
+            Storage.history.add({
+                bookId,
+                name: seriesData?.bookName || seriesData?.name,
+                cover: seriesData?.coverWap || seriesData?.cover,
+                chapterCount: seriesData?.chapterCount,
+                lastChapterId: chapterId
+            });
         } else {
-            throw new Error('Episode not found');
+            throw new Error('No stream URL');
         }
-
-        showVideoLoading(false);
-
-        // Start saving progress
-        startProgressSaving();
-
     } catch (error) {
         console.error('Failed to load video:', error);
-        showVideoLoading(false);
-        showToast('ไม่สามารถโหลดวิดีโอได้: ' + error.message, 'error');
+        Utils.toast('ไม่สามารถโหลดวิดีโอได้', 'error');
+    } finally {
+        loadingScreen?.classList.add('hidden');
+        videoLoading.classList.add('hidden');
     }
 }
 
-/**
- * Get cached drama data
- */
-function getCachedDrama(bookId) {
-    try {
-        const cache = sessionStorage.getItem('dramaCache');
-        if (cache) {
-            const dramas = JSON.parse(cache);
-            return dramas.find(d => (d.bookId || d.id) == bookId);
-        }
-    } catch (e) {
-        console.error('Cache error:', e);
+// Initialize player
+function initPlayer(url) {
+    // Destroy existing HLS instance
+    if (hls) {
+        hls.destroy();
+        hls = null;
     }
-    return null;
-}
 
-/**
- * Play video from URL
- */
-async function playVideoUrl(url) {
-    const video = document.getElementById('video-player');
-    if (!video) return;
+    // Check if HLS is needed
+    if (url.includes('.m3u8')) {
+        if (Hls.isSupported()) {
+            hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true
+            });
+            hls.loadSource(url);
+            hls.attachMedia(video);
 
-    showVideoLoading(true);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                playVideo();
+            });
 
-    try {
-        // Destroy existing HLS
-        if (hls) {
-            hls.destroy();
-            hls = null;
-        }
-
-        if (url.includes('.m3u8')) {
-            // HLS Stream
-            if (Hls.isSupported()) {
-                hls = new Hls({
-                    enableWorker: true,
-                    lowLatencyMode: true
-                });
-                hls.loadSource(url);
-                hls.attachMedia(video);
-
-                hls.on(Hls.Events.MANIFEST_PARSED, async () => {
-                    console.log('HLS manifest parsed, starting playback');
-                    try {
-                        await video.play();
-                    } catch (e) {
-                        console.log('Autoplay blocked:', e);
-                    }
-                });
-
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    console.error('HLS Error:', data);
-                    if (data.fatal) {
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                            hls.startLoad();
-                        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                            hls.recoverMediaError();
-                        }
-                    }
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari native HLS
-                video.src = url;
-                await video.play();
-            }
-        } else {
-            // Direct video (MP4)
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    console.error('HLS fatal error:', data);
+                    Utils.toast('เกิดข้อผิดพลาดในการเล่นวิดีโอ', 'error');
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari native HLS
             video.src = url;
-            video.load();
-            try {
-                await video.play();
-            } catch (e) {
-                console.log('Autoplay blocked:', e);
-            }
+            video.addEventListener('loadedmetadata', () => playVideo());
         }
-
-        showVideoLoading(false);
-    } catch (error) {
-        console.error('Playback error:', error);
-        showVideoLoading(false);
-        showToast('ไม่สามารถเล่นวิดีโอได้', 'error');
-    }
-}
-
-/**
- * Load Video via Stream API
- */
-async function loadVideo(itemId) {
-    const video = document.getElementById('video-player');
-    if (!video) return;
-
-    showVideoLoading(true);
-
-    try {
-        console.log('Fetching stream URL for itemId:', itemId);
-        const streamData = await DramaAPI.getStreamUrl(itemId);
-        console.log('Stream data:', streamData);
-
-        const streamUrl = streamData.data?.playUrl || streamData.data?.url || streamData.data?.videoPath;
-
-        if (!streamUrl) {
-            throw new Error('No stream URL in response');
-        }
-
-        console.log('Playing stream URL:', streamUrl);
-        await playVideoUrl(streamUrl);
-
-    } catch (error) {
-        console.error('Failed to load stream:', error);
-        showVideoLoading(false);
-        showToast('ไม่สามารถโหลดวิดีโอได้', 'error');
-    }
-}
-
-/**
- * Render Watch Info
- */
-function renderWatchInfo() {
-    const nameEl = document.getElementById('watch-name');
-    const episodeEl = document.getElementById('watch-episode');
-
-    const bookInfo = currentDrama?.bookInfo || currentDrama;
-    const name = bookInfo?.bookName || bookInfo?.name || 'กำลังโหลด...';
-    const epNumber = currentEpisodeIndex + 1;
-
-    if (nameEl) nameEl.textContent = name;
-    if (episodeEl) episodeEl.textContent = `ตอนที่ ${epNumber}`;
-
-    document.title = `${name} ตอนที่ ${epNumber} - DramaBox`;
-
-    updateNavButtons();
-}
-
-/**
- * Update Navigation Buttons
- */
-function updateNavButtons() {
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-
-    if (prevBtn) {
-        prevBtn.disabled = currentEpisodeIndex <= 0;
-        prevBtn.classList.toggle('disabled', currentEpisodeIndex <= 0);
-    }
-
-    if (nextBtn) {
-        nextBtn.disabled = currentEpisodeIndex >= chapters.length - 1;
-        nextBtn.classList.toggle('disabled', currentEpisodeIndex >= chapters.length - 1);
-    }
-}
-
-/**
- * Render Episode List
- */
-function renderEpisodeList() {
-    const container = document.getElementById('episode-list');
-    if (!container) return;
-
-    if (chapters.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:1rem;">ไม่พบรายการตอน</p>';
-        return;
-    }
-
-    container.innerHTML = chapters.map((ep, index) => {
-        const epNumber = ep.chapterIndex !== undefined ? ep.chapterIndex + 1 : (index + 1);
-        const chapterId = ep.chapterId || ep.id || ep.itemId;
-        const isActive = index === currentEpisodeIndex;
-
-        return `
-            <button class="episode-card ${isActive ? 'active' : ''}" 
-                    data-chapter-id="${chapterId}"
-                    data-index="${index}"
-                    onclick="changeEpisode('${chapterId}', ${index})">
-                <span class="episode-number">${epNumber}</span>
-                <span class="episode-label">ตอน</span>
-            </button>
-        `;
-    }).join('');
-
-    // Scroll to active
-    setTimeout(() => {
-        const activeBtn = container.querySelector('.active');
-        if (activeBtn) {
-            activeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
-}
-
-/**
- * Change Episode
- */
-async function changeEpisode(chapterId, index) {
-    if (index === currentEpisodeIndex) return;
-
-    saveWatchProgress();
-    showVideoLoading(true);
-
-    currentEpisodeIndex = index;
-
-    const bookId = currentDrama?.bookId || currentDrama?.id || new URLSearchParams(window.location.search).get('id');
-    const newUrl = `watch.html?id=${bookId}&ep=${chapterId}&index=${index}`;
-    window.history.pushState({}, '', newUrl);
-
-    renderWatchInfo();
-    renderEpisodeList();
-
-    // Hide continue banner
-    const banner = document.getElementById('continue-banner');
-    if (banner) banner.classList.remove('show');
-
-    // Play new episode
-    const currentEp = chapters[index];
-    if (currentEp && currentEp.videoPath) {
-        await playVideoUrl(currentEp.videoPath);
     } else {
-        await loadVideo(chapterId);
-    }
-
-    showVideoLoading(false);
-}
-
-/**
- * Play Previous/Next Episode
- */
-function playPrev() {
-    if (currentEpisodeIndex > 0) {
-        const ep = chapters[currentEpisodeIndex - 1];
-        const chapterId = ep.chapterId || ep.id || ep.itemId;
-        changeEpisode(chapterId, currentEpisodeIndex - 1);
+        // Direct MP4
+        video.src = url;
+        video.addEventListener('loadedmetadata', () => playVideo());
     }
 }
 
-function playNext() {
-    if (currentEpisodeIndex < chapters.length - 1) {
-        const ep = chapters[currentEpisodeIndex + 1];
-        const chapterId = ep.chapterId || ep.id || ep.itemId;
-        changeEpisode(chapterId, currentEpisodeIndex + 1);
-    }
-}
-
-/**
- * Video Controls
- */
-function setupVideoControls() {
-    const video = document.getElementById('video-player');
-    const wrapper = document.getElementById('video-wrapper');
-    const overlay = document.getElementById('video-overlay');
-    const header = document.getElementById('watch-header');
-
-    if (!video || !wrapper) return;
-
-    let isMouseOverControls = false;
-
-    // Start with controls hidden
-    hideControls();
-
-    wrapper.addEventListener('mousemove', showControls);
-    wrapper.addEventListener('mouseenter', showControls);
-    wrapper.addEventListener('mouseleave', () => {
-        if (!video.paused) {
-            hideControls();
-        }
+// Play video
+function playVideo() {
+    video.play().then(() => {
+        isPlaying = true;
+        updatePlayButton();
+        hideControlsDelayed();
+    }).catch(err => {
+        console.log('Autoplay blocked:', err);
+        videoOverlay.classList.add('show-play');
     });
+}
 
-    wrapper.addEventListener('touchstart', () => {
-        if (overlay?.classList.contains('show')) {
-            hideControls();
-        } else {
-            showControls();
+// Update series info
+function updateSeriesInfo() {
+    // Try to get name from: 1) URL param  2) localStorage history  3) seriesData  4) fallback
+    let name = decodeURIComponent(Utils.getUrlParam('name') || '');
+
+    if (!name) {
+        // Try to get from watch history
+        const history = Storage.history.get();
+        const historyItem = history.find(h => h.bookId === bookId);
+        if (historyItem) {
+            name = historyItem.name;
         }
-    });
-
-    wrapper.addEventListener('dblclick', () => toggleFullscreen(video));
-
-    // Clicking on overlay controls should not hide them
-    if (overlay) {
-        overlay.addEventListener('mouseenter', () => {
-            isMouseOverControls = true;
-            clearTimeout(controlsTimeout);
-        });
-        overlay.addEventListener('mouseleave', () => {
-            isMouseOverControls = false;
-            if (!video.paused) {
-                controlsTimeout = setTimeout(hideControls, 2000);
-            }
-        });
     }
 
-    video.addEventListener('timeupdate', updateProgressBar);
-    video.addEventListener('loadedmetadata', updateDuration);
-    video.addEventListener('progress', updateBufferedBar);
+    if (!name) {
+        name = seriesData?.bookName || seriesData?.name || 'ไม่ทราบชื่อ';
+    }
+
+    document.title = `${name} - ตอนที่ ${episodeNum} - DramPop`;
+    document.getElementById('video-title').textContent = name;
+    document.getElementById('episode-title-bar').textContent = name;
+}
+
+// Update episode info
+function updateEpisodeInfo() {
+    document.getElementById('video-episode').textContent = `ตอนที่ ${episodeNum}`;
+    document.getElementById('episode-meta-bar').textContent = `ตอนที่ ${episodeNum} จาก ${chaptersData.length} ตอน`;
+
+    // Update episode list
+    const items = document.querySelectorAll('.episode-item');
+    items.forEach((item, index) => {
+        item.classList.toggle('current', index === currentChapterIndex);
+    });
+}
+
+// Render episodes list
+function renderEpisodesList() {
+    const list = document.getElementById('episodes-list');
+
+    list.innerHTML = chaptersData.map((chapter, index) => `
+        <div class="episode-item ${index === currentChapterIndex ? 'current' : ''}" 
+             onclick="switchEpisode(${index})"
+             data-index="${index}">
+            <div class="ep-num">${index + 1}</div>
+            <div class="ep-info">
+                <div class="ep-title">ตอนที่ ${index + 1}</div>
+            </div>
+            ${index === currentChapterIndex ? '<i class="fas fa-play ep-playing"></i>' : ''}
+        </div>
+    `).join('');
+}
+
+// Switch episode
+async function switchEpisode(index) {
+    if (index < 0 || index >= chaptersData.length) return;
+
+    currentChapterIndex = index;
+    chapterId = chaptersData[index].chapterId;
+    episodeNum = index + 1;
+
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('ep', chapterId);
+    url.searchParams.set('num', episodeNum);
+    history.replaceState({}, '', url);
+
+    // Load new video
+    videoLoading.classList.remove('hidden');
+    await loadVideo();
+    updateNavigationButtons();
+
+    // Close sidebar on mobile
+    document.getElementById('episodes-sidebar').classList.remove('open');
+}
+
+// Update navigation buttons
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+
+    prevBtn.disabled = currentChapterIndex <= 0;
+    nextBtn.disabled = currentChapterIndex >= chaptersData.length - 1;
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Video events
     video.addEventListener('play', () => {
-        updatePlayPauseIcon(true);
-        // Auto-hide controls when video starts playing
-        controlsTimeout = setTimeout(() => {
-            if (!isMouseOverControls) hideControls();
-        }, 2000);
+        isPlaying = true;
+        updatePlayButton();
+        videoOverlay.classList.remove('show-play');
     });
+
     video.addEventListener('pause', () => {
-        updatePlayPauseIcon(false);
-        // Show controls when paused
+        isPlaying = false;
+        updatePlayButton();
         showControls();
-        clearTimeout(controlsTimeout);
+        videoOverlay.classList.add('show-play');
     });
-    video.addEventListener('waiting', () => showVideoLoading(true));
-    video.addEventListener('canplay', () => showVideoLoading(false));
 
-    function showControls() {
-        if (overlay) overlay.classList.add('show');
-        if (header) header.classList.remove('hidden');
-        clearTimeout(controlsTimeout);
-        if (!video.paused && !isMouseOverControls) {
-            controlsTimeout = setTimeout(hideControls, 3000);
-        }
-    }
+    video.addEventListener('timeupdate', updateProgress);
+    video.addEventListener('loadedmetadata', () => {
+        document.getElementById('time-total').textContent = Utils.formatTime(video.duration);
+    });
 
-    function hideControls() {
-        if (overlay) overlay.classList.remove('show');
-        if (header) header.classList.add('hidden');
-    }
+    video.addEventListener('waiting', () => videoLoading.classList.remove('hidden'));
+    video.addEventListener('canplay', () => videoLoading.classList.add('hidden'));
 
-    // Export for use elsewhere
-    window.showVideoControls = showControls;
-    window.hideVideoControls = hideControls;
-}
+    video.addEventListener('ended', onVideoEnded);
 
-/**
- * Progress Bar Functions
- */
-function updateProgressBar() {
-    const video = document.getElementById('video-player');
-    const playedBar = document.getElementById('played-bar');
-    const handle = document.getElementById('progress-handle');
-    const currentTimeEl = document.getElementById('current-time');
-
-    if (!video || !playedBar) return;
-
-    const percent = (video.currentTime / video.duration) * 100 || 0;
-    playedBar.style.width = `${percent}%`;
-    if (handle) handle.style.left = `${percent}%`;
-    if (currentTimeEl) currentTimeEl.textContent = formatTime(video.currentTime);
-}
-
-function updateBufferedBar() {
-    const video = document.getElementById('video-player');
-    const bufferedBar = document.getElementById('buffered-bar');
-
-    if (!video || !bufferedBar || video.buffered.length === 0) return;
-
-    const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-    const percent = (bufferedEnd / video.duration) * 100;
-    bufferedBar.style.width = `${percent}%`;
-}
-
-function updateDuration() {
-    const video = document.getElementById('video-player');
-    const durationEl = document.getElementById('duration');
-
-    if (!video || !durationEl) return;
-    durationEl.textContent = formatTime(video.duration);
-    checkContinueWatching();
-}
-
-function updatePlayPauseIcon(isPlaying) {
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const playIcon = document.getElementById('play-icon');
-
-    if (playPauseBtn) {
-        playPauseBtn.innerHTML = isPlaying
-            ? '<i data-lucide="pause" style="width:32px;height:32px"></i>'
-            : '<i data-lucide="play" style="width:32px;height:32px"></i>';
-    }
-
-    if (playIcon) {
-        playIcon.setAttribute('data-lucide', isPlaying ? 'pause' : 'play');
-    }
-
-    if (window.lucide) lucide.createIcons();
-}
-
-/**
- * Video Control Functions
- */
-function togglePlay() {
-    const video = document.getElementById('video-player');
-    if (video) video.paused ? video.play() : video.pause();
-}
-
-function skipTime(seconds) {
-    const video = document.getElementById('video-player');
-    if (video) video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
-}
-
-function seekTo(event) {
-    const video = document.getElementById('video-player');
+    // Progress bar
     const progressBar = document.getElementById('progress-bar');
-    if (!video || !progressBar) return;
+    progressBar.addEventListener('click', seekVideo);
 
-    const rect = progressBar.getBoundingClientRect();
-    const pos = (event.clientX - rect.left) / rect.width;
-    video.currentTime = pos * video.duration;
-}
+    // Control buttons
+    document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
+    videoPlayBtn.addEventListener('click', togglePlay);
+    document.getElementById('btn-mute').addEventListener('click', toggleMute);
+    document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+    document.getElementById('btn-prev').addEventListener('click', () => switchEpisode(currentChapterIndex - 1));
+    document.getElementById('btn-next').addEventListener('click', () => switchEpisode(currentChapterIndex + 1));
 
-function changeVolume(value) {
-    const video = document.getElementById('video-player');
-    if (video) {
-        video.volume = parseFloat(value);
-        updateVolumeIcon();
-    }
-}
-
-function toggleMute() {
-    const video = document.getElementById('video-player');
-    if (video) {
-        video.muted = !video.muted;
-        updateVolumeIcon();
-    }
-}
-
-function updateVolumeIcon() {
-    const video = document.getElementById('video-player');
-    const volumeIcon = document.getElementById('volume-icon');
+    // Volume slider
     const volumeSlider = document.getElementById('volume-slider');
+    volumeSlider.addEventListener('input', (e) => {
+        volume = parseFloat(e.target.value);
+        video.volume = volume;
+        updateVolumeIcon();
+    });
 
-    if (!video || !volumeIcon) return;
+    // Video container click/tap
+    videoContainer.addEventListener('click', handleVideoClick);
 
-    let iconName = 'volume-2';
-    if (video.muted || video.volume === 0) iconName = 'volume-x';
-    else if (video.volume < 0.5) iconName = 'volume-1';
+    // Double tap handling
+    setupDoubleTap();
 
-    volumeIcon.setAttribute('data-lucide', iconName);
-    if (volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
-    if (window.lucide) lucide.createIcons();
+    // Show controls on mouse move
+    videoContainer.addEventListener('mousemove', () => {
+        showControls();
+        hideControlsDelayed();
+    });
+
+    // Episode sidebar toggle
+    document.getElementById('btn-toggle-episodes').addEventListener('click', () => {
+        document.getElementById('episodes-sidebar').classList.add('open');
+    });
+
+    document.getElementById('btn-close-sidebar').addEventListener('click', () => {
+        document.getElementById('episodes-sidebar').classList.remove('open');
+    });
+
+    // Next episode toast
+    document.getElementById('btn-cancel-next').addEventListener('click', cancelNextEpisode);
+    document.getElementById('btn-play-next').addEventListener('click', playNextEpisode);
+
+    // PIP
+    document.getElementById('btn-pip')?.addEventListener('click', togglePIP);
+
+    // Settings button - Playback speed
+    document.getElementById('btn-settings')?.addEventListener('click', showSettingsMenu);
 }
 
-async function togglePIP() {
-    const video = document.getElementById('video-player');
-    if (!video) return;
+// Handle video click
+function handleVideoClick(e) {
+    if (e.target.closest('.video-controls') || e.target.closest('.player-top-bar')) return;
 
+    if (videoControls.classList.contains('hidden')) {
+        showControls();
+        hideControlsDelayed();
+    } else {
+        togglePlay();
+    }
+}
+
+// Setup double tap for skip
+function setupDoubleTap() {
+    let lastTap = 0;
+    let tapTimeout = null;
+
+    const handleDoubleTap = (area, seconds) => {
+        const now = Date.now();
+        const tap = lastTap;
+        lastTap = now;
+
+        if (now - tap < 300) {
+            clearTimeout(tapTimeout);
+            video.currentTime += seconds;
+            area.classList.add('active');
+            setTimeout(() => area.classList.remove('active'), 500);
+        }
+    };
+
+    document.getElementById('tap-left').addEventListener('click', function () {
+        handleDoubleTap(this, -5);
+    });
+
+    document.getElementById('tap-right').addEventListener('click', function () {
+        handleDoubleTap(this, 5);
+    });
+}
+
+// Keyboard controls
+function setupKeyboardControls() {
+    document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+            case ' ':
+            case 'k':
+                e.preventDefault();
+                togglePlay();
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                video.currentTime -= 5;
+                showSkipIndicator('left');
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                video.currentTime += 5;
+                showSkipIndicator('right');
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                video.volume = Math.min(1, video.volume + 0.1);
+                document.getElementById('volume-slider').value = video.volume;
+                updateVolumeIcon();
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                video.volume = Math.max(0, video.volume - 0.1);
+                document.getElementById('volume-slider').value = video.volume;
+                updateVolumeIcon();
+                break;
+            case 'm':
+                toggleMute();
+                break;
+            case 'f':
+                toggleFullscreen();
+                break;
+        }
+    });
+}
+
+// Show skip indicator
+function showSkipIndicator(direction) {
+    const area = document.getElementById(`tap-${direction}`);
+    area.classList.add('active');
+    setTimeout(() => area.classList.remove('active'), 500);
+}
+
+// Toggle play/pause
+function togglePlay() {
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+// Update play button
+function updatePlayButton() {
+    const icon = isPlaying ? 'fa-pause' : 'fa-play';
+    document.getElementById('btn-play-pause').innerHTML = `<i class="fas ${icon}"></i>`;
+    videoPlayBtn.innerHTML = `<i class="fas ${icon}"></i>`;
+}
+
+// Toggle mute
+function toggleMute() {
+    isMuted = !isMuted;
+    video.muted = isMuted;
+    updateVolumeIcon();
+}
+
+// Update volume icon
+function updateVolumeIcon() {
+    const btn = document.getElementById('btn-mute');
+    let icon = 'fa-volume-up';
+    if (isMuted || video.volume === 0) icon = 'fa-volume-mute';
+    else if (video.volume < 0.5) icon = 'fa-volume-down';
+    btn.innerHTML = `<i class="fas ${icon}"></i>`;
+}
+
+// Toggle fullscreen
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.() ||
+            document.documentElement.webkitRequestFullscreen?.();
+    } else {
+        document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+    }
+}
+
+// Toggle PIP
+async function togglePIP() {
     try {
         if (document.pictureInPictureElement) {
             await document.exitPictureInPicture();
-        } else if (document.pictureInPictureEnabled) {
+        } else if (video.requestPictureInPicture) {
             await video.requestPictureInPicture();
         }
-    } catch (error) {
-        showToast('ไม่สามารถเปิด Picture-in-Picture ได้', 'error');
+    } catch (err) {
+        Utils.toast('PIP ไม่รองรับบนอุปกรณ์นี้', 'info');
     }
 }
 
-function toggleFullscreen(element) {
-    const video = element || document.getElementById('video-player');
+// Update progress
+function updateProgress() {
+    const progress = (video.currentTime / video.duration) * 100;
+    document.getElementById('progress-played').style.width = `${progress}%`;
+    document.getElementById('progress-thumb').style.left = `${progress}%`;
+    document.getElementById('time-current').textContent = Utils.formatTime(video.currentTime);
 
-    // Check if already in fullscreen
-    const isFullscreen = document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.mozFullScreenElement ||
-        document.msFullscreenElement;
+    // Update history progress
+    Storage.history.updateProgress(bookId, chapterId, video.currentTime, video.duration);
+}
 
-    if (!isFullscreen) {
-        // Try standard Fullscreen API first
-        if (video.requestFullscreen) {
-            video.requestFullscreen().catch(() => { });
-        }
-        // Safari/iOS - use webkitEnterFullscreen for video
-        else if (video.webkitEnterFullscreen) {
-            video.webkitEnterFullscreen();
-        }
-        // Webkit prefix (older Safari)
-        else if (video.webkitRequestFullscreen) {
-            video.webkitRequestFullscreen();
-        }
-        // Mozilla prefix
-        else if (video.mozRequestFullScreen) {
-            video.mozRequestFullScreen();
-        }
-        // MS prefix
-        else if (video.msRequestFullscreen) {
-            video.msRequestFullscreen();
-        }
-    } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
+// Seek video
+function seekVideo(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    video.currentTime = percent * video.duration;
+}
+
+// Show controls
+function showControls() {
+    videoControls.classList.remove('hidden');
+    playerTopBar.classList.remove('hidden');
+}
+
+// Hide controls
+function hideControls() {
+    if (isPlaying) {
+        videoControls.classList.add('hidden');
+        playerTopBar.classList.add('hidden');
     }
 }
 
-/**
- * Utility Functions
- */
-function formatTime(seconds) {
-    if (isNaN(seconds)) return '0:00';
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    if (hours > 0) return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+// Hide controls with delay
+function hideControlsDelayed() {
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(hideControls, CONTROLS_HIDE_DELAY);
 }
 
-function showVideoLoading(show) {
-    const loader = document.getElementById('video-loading');
-    if (loader) loader.style.display = show ? 'flex' : 'none';
-}
-
-/**
- * Watch History Functions
- */
-function getWatchHistory() {
-    try {
-        const history = localStorage.getItem(WATCH_HISTORY_KEY);
-        return history ? JSON.parse(history) : {};
-    } catch (e) {
-        return {};
+// On video ended - Auto play next episode
+function onVideoEnded() {
+    if (currentChapterIndex < chaptersData.length - 1) {
+        // Auto play next episode immediately
+        playNextEpisode();
     }
 }
 
-function saveWatchProgress() {
-    const video = document.getElementById('video-player');
-    if (!video || !currentDrama) return;
+// Show next episode toast
+function showNextEpisodeToast() {
+    const toast = document.getElementById('next-episode-toast');
+    const countdown = document.getElementById('next-countdown');
 
-    const bookId = currentDrama?.bookId || currentDrama?.id || new URLSearchParams(window.location.search).get('id');
-    if (!bookId) return;
+    toast.classList.add('visible');
 
-    const currentEp = chapters[currentEpisodeIndex];
-    if (!currentEp) return;
+    let count = 5;
+    countdown.textContent = count;
 
-    try {
-        const history = getWatchHistory();
+    nextEpisodeTimeout = setInterval(() => {
+        count--;
+        countdown.textContent = count;
 
-        history[bookId] = {
-            bookId: bookId,
-            bookName: currentDrama?.bookInfo?.bookName || currentDrama?.bookName || currentDrama?.name || '',
-            cover: currentDrama?.bookInfo?.coverWap || currentDrama?.cover || currentDrama?.coverWap || '',
-            episodeIndex: currentEpisodeIndex,
-            chapterId: currentEp.chapterId || currentEp.id || currentEp.itemId,
-            currentTime: video.currentTime,
-            duration: video.duration || 0,
-            progress: video.duration ? (video.currentTime / video.duration * 100) : 0,
-            lastWatched: Date.now(),
-            watchedEpisodes: history[bookId]?.watchedEpisodes || []
-        };
-
-        if (video.duration && video.currentTime / video.duration > 0.8) {
-            if (!history[bookId].watchedEpisodes.includes(currentEpisodeIndex)) {
-                history[bookId].watchedEpisodes.push(currentEpisodeIndex);
-            }
+        if (count <= 0) {
+            playNextEpisode();
         }
-
-        localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(history));
-    } catch (e) {
-        console.error('Failed to save progress:', e);
-    }
+    }, 1000);
 }
 
-function getCurrentDramaProgress() {
-    const bookId = currentDrama?.bookId || currentDrama?.id || new URLSearchParams(window.location.search).get('id');
-    if (!bookId) return null;
-    const history = getWatchHistory();
-    return history[bookId] || null;
+// Cancel next episode
+function cancelNextEpisode() {
+    clearInterval(nextEpisodeTimeout);
+    document.getElementById('next-episode-toast').classList.remove('visible');
 }
 
-function checkContinueWatching() {
-    const progress = getCurrentDramaProgress();
-    const banner = document.getElementById('continue-banner');
-    const timeEl = document.getElementById('continue-time');
-
-    if (!banner) return;
-
-    if (progress && progress.episodeIndex === currentEpisodeIndex && progress.currentTime > 10) {
-        banner.classList.add('show');
-        if (timeEl) timeEl.textContent = formatTime(progress.currentTime);
-    } else {
-        banner.classList.remove('show');
-    }
+// Play next episode
+function playNextEpisode() {
+    clearInterval(nextEpisodeTimeout);
+    document.getElementById('next-episode-toast').classList.remove('visible');
+    switchEpisode(currentChapterIndex + 1);
 }
 
-function resumeFromHistory() {
-    const progress = getCurrentDramaProgress();
-    const video = document.getElementById('video-player');
-    const banner = document.getElementById('continue-banner');
-
-    if (progress && video && progress.currentTime > 0) {
-        video.currentTime = progress.currentTime;
-        if (banner) banner.classList.remove('show');
-        showToast(`กลับมาดูต่อที่ ${formatTime(progress.currentTime)}`, 'info');
-    }
-}
-
-function startProgressSaving() {
-    setInterval(saveWatchProgress, 5000);
-    window.addEventListener('beforeunload', saveWatchProgress);
-}
-
-/**
- * Video Events
- */
-function setupVideoEvents() {
-    const video = document.getElementById('video-player');
-    if (!video) return;
-
-    video.addEventListener('ended', () => {
-        saveWatchProgress();
-
-        if (currentEpisodeIndex < chapters.length - 1) {
-            // Auto-play next episode
-            showToast('กำลังเล่นตอนถัดไป...', 'info');
-            setTimeout(() => playNext(), 1500);
-        } else {
-            showToast('จบซีรีส์แล้ว! 🎉', 'success');
-        }
-    });
-
-    video.addEventListener('error', (e) => {
-        console.error('Video error:', e);
-        showToast('เกิดข้อผิดพลาดในการเล่นวิดีโอ', 'error');
-    });
-}
-
-/**
- * Keyboard Controls
- */
-document.addEventListener('keydown', (e) => {
-    const video = document.getElementById('video-player');
-    if (!video) return;
-
-    switch (e.key) {
-        case ' ': e.preventDefault(); togglePlay(); break;
-        case 'ArrowLeft': skipTime(-10); break;
-        case 'ArrowRight': skipTime(10); break;
-        case 'ArrowUp': e.preventDefault(); video.volume = Math.min(1, video.volume + 0.1); updateVolumeIcon(); break;
-        case 'ArrowDown': e.preventDefault(); video.volume = Math.max(0, video.volume - 0.1); updateVolumeIcon(); break;
-        case 'f': case 'F': toggleFullscreen(video); break;
-        case 'm': case 'M': toggleMute(); break;
-        case 'n': case 'N': playNext(); break;
-        case 'p': case 'P': playPrev(); break;
-    }
-});
-
-/**
- * Navigation
- */
+// Go back
 function goBack() {
-    saveWatchProgress();
-    const bookId = currentDrama?.bookId || currentDrama?.id || new URLSearchParams(window.location.search).get('id');
-    window.location.href = bookId ? `detail.html?id=${bookId}` : 'index.html';
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('watch-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (sidebar) sidebar.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('show');
-}
-
-async function shareContent() {
-    const name = currentDrama?.bookInfo?.bookName || currentDrama?.bookName || 'DramaBox';
-    const url = window.location.href;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: name, text: `ดู ${name} บน DramaBox`, url });
-        } catch (e) {
-            if (e.name !== 'AbortError') copyToClipboard(url);
-        }
+    if (history.length > 1) {
+        history.back();
     } else {
-        copyToClipboard(url);
+        Utils.navigate('detail.html', { id: bookId });
     }
 }
 
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => showToast('คัดลอกลิงก์แล้ว!', 'success')).catch(() => { });
+// Show settings menu
+async function showSettingsMenu() {
+    const currentSpeed = video.playbackRate;
+
+    const { value: speed } = await Swal.fire({
+        title: 'ตั้งค่า',
+        html: `
+            <div style="text-align: left; padding: 10px 0;">
+                <p style="margin-bottom: 10px; font-weight: 600;">ความเร็วในการเล่น:</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                    ${[0.5, 0.75, 1, 1.25, 1.5, 2].map(s => `
+                        <button class="speed-btn ${currentSpeed === s ? 'active' : ''}" data-speed="${s}" style="
+                            padding: 10px 20px;
+                            border: 2px solid ${currentSpeed === s ? '#6366f1' : '#333'};
+                            background: ${currentSpeed === s ? 'rgba(99,102,241,0.2)' : '#1a1a1a'};
+                            color: white;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">${s === 1 ? 'ปกติ' : s + 'x'}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `,
+        background: '#1a1a1a',
+        color: '#fff',
+        showConfirmButton: false,
+        showCloseButton: true,
+        didOpen: () => {
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const newSpeed = parseFloat(btn.dataset.speed);
+                    video.playbackRate = newSpeed;
+                    Swal.close();
+                    Utils.toast(`ความเร็ว: ${newSpeed === 1 ? 'ปกติ' : newSpeed + 'x'}`, 'success');
+                });
+            });
+        }
+    });
 }
 
-// Export functions
-window.changeEpisode = changeEpisode;
-window.playPrev = playPrev;
-window.playNext = playNext;
-window.toggleFullscreen = toggleFullscreen;
+// Make functions global
+window.switchEpisode = switchEpisode;
 window.goBack = goBack;
-window.shareContent = shareContent;
-window.togglePlay = togglePlay;
-window.skipTime = skipTime;
-window.seekTo = seekTo;
-window.changeVolume = changeVolume;
-window.toggleMute = toggleMute;
-window.togglePIP = togglePIP;
-window.toggleSidebar = toggleSidebar;
-window.resumeFromHistory = resumeFromHistory;
-
-/**
- * Double-tap to Seek
- * แตะ 2 ครั้งเพื่อ skip ±10 วินาที
- */
-function setupDoubleTapSeek() {
-    const video = document.getElementById('video-player');
-    const leftZone = document.getElementById('tap-zone-left');
-    const rightZone = document.getElementById('tap-zone-right');
-    const leftIndicator = document.getElementById('seek-indicator-left');
-    const rightIndicator = document.getElementById('seek-indicator-right');
-
-    if (!video || !leftZone || !rightZone) return;
-
-    let lastTapTime = 0;
-    let lastTapZone = null;
-    let tapCount = 0;
-    let tapTimeout = null;
-    let indicatorTimeout = null;
-
-    function handleDoubleTap(zone, direction) {
-        const indicator = direction === 'left' ? leftIndicator : rightIndicator;
-        const seekAmount = direction === 'left' ? -10 : 10;
-
-        // Create ripple effect
-        createRipple(zone);
-
-        // Skip video
-        skipTime(seekAmount);
-
-        // Show indicator
-        if (indicator) {
-            indicator.classList.add('show');
-            clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 600);
-        }
-    }
-
-    function createRipple(zone) {
-        const ripple = document.createElement('div');
-        ripple.className = 'tap-ripple';
-        ripple.style.width = '60px';
-        ripple.style.height = '60px';
-        ripple.style.left = '50%';
-        ripple.style.top = '50%';
-        ripple.style.marginLeft = '-30px';
-        ripple.style.marginTop = '-30px';
-        zone.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 600);
-    }
-
-    function handleTap(e, zone, direction) {
-        const currentTime = Date.now();
-
-        // Check if it's a double tap (within 300ms)
-        if (lastTapZone === zone && currentTime - lastTapTime < 300) {
-            // Double tap detected
-            tapCount++;
-            clearTimeout(tapTimeout);
-            handleDoubleTap(zone, direction);
-        } else {
-            // First tap - reset and wait for potential second tap
-            tapCount = 1;
-            clearTimeout(tapTimeout);
-            tapTimeout = setTimeout(() => {
-                // Single tap - toggle controls or play/pause
-                if (tapCount === 1) {
-                    togglePlay();
-                }
-                tapCount = 0;
-            }, 300);
-        }
-
-        lastTapTime = currentTime;
-        lastTapZone = zone;
-    }
-
-    // Touch events for mobile
-    leftZone.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleTap(e, leftZone, 'left');
-    });
-
-    rightZone.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleTap(e, rightZone, 'right');
-    });
-
-    // Click events for desktop (double-click)
-    leftZone.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleDoubleTap(leftZone, 'left');
-    });
-
-    rightZone.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleDoubleTap(rightZone, 'right');
-    });
-
-    // Single click for play/pause on desktop
-    leftZone.addEventListener('click', (e) => {
-        // Don't toggle play on click - will be handled by dblclick timeout
-    });
-
-    rightZone.addEventListener('click', (e) => {
-        // Don't toggle play on click - will be handled by dblclick timeout
-    });
-}
-
-/**
- * Landscape Auto-fullscreen
- * หมุนจอเป็นแนวนอนเข้าเต็มจออัตโนมัติ
- */
-function setupOrientationFullscreen() {
-    const video = document.getElementById('video-player');
-    if (!video) return;
-
-    // Check if screen orientation API is supported
-    const supportsOrientationAPI = 'orientation' in screen || 'mozOrientation' in screen || 'msOrientation' in screen;
-
-    let wasFullscreenBeforePortrait = false;
-
-    function handleOrientationChange() {
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const isFullscreen = document.fullscreenElement ||
-            document.webkitFullscreenElement ||
-            document.mozFullScreenElement ||
-            document.msFullscreenElement;
-
-        // Check if video is playing or has been played
-        if (video.readyState < 2) return; // Don't auto-fullscreen if video not loaded
-
-        if (isLandscape && !isFullscreen) {
-            // Entering landscape - go fullscreen
-            wasFullscreenBeforePortrait = false;
-            toggleFullscreen(video);
-            showToast('เข้าสู่โหมดเต็มจอ', 'info');
-        } else if (!isLandscape && isFullscreen && !wasFullscreenBeforePortrait) {
-            // Back to portrait - exit fullscreen (only if we auto-entered)
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-        }
-    }
-
-    // Listen for orientation changes
-    if (supportsOrientationAPI && screen.orientation) {
-        screen.orientation.addEventListener('change', handleOrientationChange);
-    }
-
-    // Fallback: window resize (works on more devices)
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleOrientationChange, 200);
-    });
-
-    // Remember if user manually entered fullscreen
-    document.addEventListener('fullscreenchange', () => {
-        const isLandscape = window.innerWidth > window.innerHeight;
-        if (document.fullscreenElement && !isLandscape) {
-            wasFullscreenBeforePortrait = true;
-        }
-    });
-}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการซีรีส์ - Admin DramPop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo"><i class="fas fa-play-circle"></i><span>DramPop</span></a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>แผงควบคุม</span></a>
+            <div class="nav-section">จัดการเนื้อหา</div>
+            <a href="admin-series.html" class="nav-link active"><i class="fas fa-film"></i><span>จัดการซีรีส์</span></a>
+            <a href="admin-import.html" class="nav-link"><i class="fas fa-cloud-download-alt"></i><span>ดึงซีรีส์จาก
+                    API</span></a>
+            <a href="admin-categories.html" class="nav-link"><i class="fas fa-tags"></i><span>จัดการหมวดหมู่</span></a>
+            <a href="admin-tags.html" class="nav-link"><i class="fas fa-hashtag"></i><span>จัดการแท็ก</span></a>
+            <div class="nav-section">การเงิน</div>
+            <a href="admin-ads.html" class="nav-link"><i class="fas fa-ad"></i><span>จัดการโฆษณา</span></a>
+            <a href="admin-vip.html" class="nav-link"><i class="fas fa-crown"></i><span>แพ็กเกจ VIP</span></a>
+            <a href="admin-giftcode.html" class="nav-link"><i class="fas fa-gift"></i><span>Gift Code</span></a>
+            <div class="nav-section">ผู้ใช้</div>
+            <a href="admin-users.html" class="nav-link"><i class="fas fa-users"></i><span>จัดการผู้ใช้</span></a>
+            <div class="nav-section">ตั้งค่า</div>
+            <a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i><span>ตั้งค่าเว็บไซต์</span></a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">จัดการซีรีส์</h1>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showAddModal()">
+                    <i class="fas fa-plus"></i> เพิ่มซีรีส์
+                </button>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div class="admin-toolbar">
+                <div class="admin-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="ค้นหาซีรีส์...">
+                </div>
+                <div class="admin-filter">
+                    <select id="filter-category">
+                        <option value="">ทุกหมวดหมู่</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="loadSeries()">
+                    <i class="fas fa-sync"></i> รีเฟรช
+                </button>
+            </div>
+
+            <div class="admin-section">
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ซีรีส์</th>
+                                <th>หมวดหมู่</th>
+                                <th>ตอน</th>
+                                <th>ยอดวิว</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="series-table-body">
+                            <tr>
+                                <td colspan="5" class="text-center">กำลังโหลด...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="admin-modal" id="series-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3 id="modal-title">เพิ่มซีรีส์</h3>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="admin-modal-body">
+                <form id="series-form">
+                    <div class="form-group">
+                        <label class="form-label">ชื่อซีรีส์ *</label>
+                        <input type="text" class="form-input" id="series-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">รูปปก URL</label>
+                        <input type="url" class="form-input" id="series-cover" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">เรื่องย่อ</label>
+                        <textarea class="form-input" id="series-intro" rows="4"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">หมวดหมู่</label>
+                            <select class="form-input" id="series-category">
+                                <option value="">เลือกหมวดหมู่</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">สถานะ</label>
+                            <select class="form-input" id="series-status">
+                                <option value="ongoing">กำลังฉาย</option>
+                                <option value="completed">จบแล้ว</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="saveSeries()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let seriesList = [];
+        let editingId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+                document.getElementById('admin-sidebar').classList.toggle('collapsed');
+            });
+
+            await loadCategories();
+            await loadSeries();
+
+            document.getElementById('search-input').addEventListener('input', Utils.debounce(filterSeries, 300));
+        });
+
+        async function loadCategories() {
+            try {
+                const result = await API.getCategories();
+                if (result?.success) {
+                    const options = result.data.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+                    document.getElementById('filter-category').innerHTML = `<option value="">ทุกหมวดหมู่</option>${options}`;
+                    document.getElementById('series-category').innerHTML = `<option value="">เลือกหมวดหมู่</option>${options}`;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSeries() {
+            const tbody = document.getElementById('series-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+
+            try {
+                const result = await API.getHome();
+                if (result?.success) {
+                    seriesList = result.data;
+                    renderSeriesTable(seriesList);
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-error">เกิดข้อผิดพลาด</td></tr>';
+            }
+        }
+
+        function renderSeriesTable(data) {
+            const tbody = document.getElementById('series-table-body');
+
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">ไม่พบข้อมูล</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(d => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${d.cover}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                            <div>
+                                <div style="font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    ${Utils.escapeHtml(d.name)}
+                                </div>
+                                <div style="font-size: 12px; color: var(--color-text-muted);">ID: ${d.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge-tag">${d.cornerName || '-'}</span></td>
+                    <td>${d.chapterCount || 0}</td>
+                    <td>${d.playCount || '0'}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-action" onclick="viewEpisodes('${d.id}')" title="ดูตอน"><i class="fas fa-list"></i></button>
+                            <button class="btn-action" onclick="editSeries('${d.id}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action danger" onclick="deleteSeries('${d.id}')" title="ลบ"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterSeries() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = seriesList.filter(s => s.name.toLowerCase().includes(query));
+            renderSeriesTable(filtered);
+        }
+
+        function showAddModal() {
+            editingId = null;
+            document.getElementById('modal-title').textContent = 'เพิ่มซีรีส์';
+            document.getElementById('series-form').reset();
+            document.getElementById('series-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('series-modal').classList.remove('active');
+        }
+
+        async function saveSeries() {
+            Utils.toast('บันทึกสำเร็จ (Demo Mode)', 'success');
+            closeModal();
+        }
+
+        async function editSeries(id) {
+            const series = seriesList.find(s => s.id === id);
+            if (!series) return;
+
+            editingId = id;
+            document.getElementById('modal-title').textContent = 'แก้ไขซีรีส์';
+            document.getElementById('series-name').value = series.name;
+            document.getElementById('series-cover').value = series.cover;
+            document.getElementById('series-intro').value = series.introduction || '';
+            document.getElementById('series-modal').classList.add('active');
+        }
+
+        async function deleteSeries(id) {
+            const confirmed = await Utils.confirm('ยืนยันการลบ?', 'การดำเนินการนี้ไม่สามารถย้อนกลับได้');
+            if (confirmed) {
+                Utils.toast('ลบสำเร็จ (Demo Mode)', 'success');
+            }
+        }
+
+        function viewEpisodes(id) {
+            Utils.navigate('admin-episodes.html', { id });
+        }
+    </script>
+</body>
+
+</html>
