@@ -290,12 +290,16 @@ function setupSliderDrag(slider) {
     let velocity = 0;
     let lastX = 0;
     let animationId = null;
+    let hasDragged = false; // Track if user actually dragged
+    let dragStartX = 0; // Track starting position for drag detection
 
     // Mouse events for desktop
     slider.addEventListener('mousedown', (e) => {
         isDown = true;
+        hasDragged = false; // Reset drag flag
         slider.classList.add('dragging');
         startX = e.pageX - slider.offsetLeft;
+        dragStartX = e.pageX; // Store initial position
         scrollLeft = slider.scrollLeft;
         velocity = 0;
         lastX = e.pageX;
@@ -318,10 +322,18 @@ function setupSliderDrag(slider) {
 
     slider.addEventListener('mousemove', (e) => {
         if (!isDown) return;
-        e.preventDefault();
         const x = e.pageX - slider.offsetLeft;
         const walk = (x - startX) * 1.5; // Scroll speed multiplier
-        slider.scrollLeft = scrollLeft - walk;
+
+        // Mark as dragged if moved more than 10px
+        if (Math.abs(e.pageX - dragStartX) > 10) {
+            hasDragged = true;
+        }
+
+        if (hasDragged) {
+            e.preventDefault();
+            slider.scrollLeft = scrollLeft - walk;
+        }
         velocity = e.pageX - lastX;
         lastX = e.pageX;
     });
@@ -329,7 +341,9 @@ function setupSliderDrag(slider) {
     // Touch events for mobile
     slider.addEventListener('touchstart', (e) => {
         isDown = true;
+        hasDragged = false;
         startX = e.touches[0].pageX - slider.offsetLeft;
+        dragStartX = e.touches[0].pageX;
         scrollLeft = slider.scrollLeft;
         velocity = 0;
         lastX = e.touches[0].pageX;
@@ -345,7 +359,15 @@ function setupSliderDrag(slider) {
         if (!isDown) return;
         const x = e.touches[0].pageX - slider.offsetLeft;
         const walk = (x - startX) * 1.5;
-        slider.scrollLeft = scrollLeft - walk;
+
+        // Mark as dragged if moved more than 10px
+        if (Math.abs(e.touches[0].pageX - dragStartX) > 10) {
+            hasDragged = true;
+        }
+
+        if (hasDragged) {
+            slider.scrollLeft = scrollLeft - walk;
+        }
         velocity = e.touches[0].pageX - lastX;
         lastX = e.touches[0].pageX;
     }, { passive: true });
@@ -363,12 +385,15 @@ function setupSliderDrag(slider) {
         }
     }
 
-    // Prevent click on drag
+    // Prevent click only when user actually dragged
     slider.addEventListener('click', (e) => {
-        if (Math.abs(velocity) > 5) {
+        if (hasDragged) {
             e.preventDefault();
             e.stopPropagation();
         }
+        // Reset for next interaction
+        hasDragged = false;
+        velocity = 0;
     }, true);
 }
 

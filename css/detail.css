@@ -1,5 +1,5 @@
 /* ========================================
-   Detail Page Styles
+   Detail Page Styles - Netflix Style
    ======================================== */
 
 /* Detail Nav */
@@ -13,15 +13,22 @@
 }
 
 .detail-nav .btn-back {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
     border-radius: var(--radius-full);
     color: white;
     backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.detail-nav .btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .detail-nav .nav-title {
@@ -33,13 +40,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     opacity: 0;
-    transition: opacity var(--transition-base);
+    transition: opacity var(--transition-smooth);
 }
 
 .detail-nav.scrolled {
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(20, 20, 20, 0.98);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-color);
 }
 
 .detail-nav.scrolled .nav-title {
@@ -55,7 +61,7 @@
 }
 
 .detail-nav .btn-icon {
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-full);
 }
@@ -64,15 +70,19 @@
     background: transparent;
 }
 
-/* Detail Content */
+/* ========================================
+   Detail Content
+   ======================================== */
 .detail-content {
     padding-top: 0;
 }
 
-/* Cover Section */
+/* ========================================
+   Cover Section - Netflix Style
+   ======================================== */
 .cover-section {
     position: relative;
-    min-height: 400px;
+    min-height: 450px;
     padding-top: var(--nav-height);
 }
 
@@ -81,9 +91,9 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 350px;
+    height: 420px;
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     background-repeat: no-repeat;
 }
 
@@ -92,9 +102,10 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(to bottom,
-            rgba(10, 10, 15, 0.3) 0%,
-            rgba(10, 10, 15, 0.6) 50%,
-            rgba(10, 10, 15, 1) 100%);
+            rgba(20, 20, 20, 0.4) 0%,
+            rgba(20, 20, 20, 0.6) 40%,
+            rgba(20, 20, 20, 0.9) 70%,
+            rgba(20, 20, 20, 1) 100%);
 }
 
 .cover-overlay {
@@ -102,27 +113,31 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 350px;
-    background: radial-gradient(ellipse at center top, transparent 0%, rgba(10, 10, 15, 0.8) 100%);
+    height: 420px;
+    background: radial-gradient(ellipse at center top,
+            transparent 0%,
+            rgba(20, 20, 20, 0.5) 60%,
+            rgba(20, 20, 20, 0.9) 100%);
 }
 
 .cover-content {
     position: relative;
     display: flex;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    padding-top: 150px;
+    gap: var(--spacing-xl);
+    padding: 0 4%;
+    padding-top: 180px;
     z-index: 1;
 }
 
+/* Poster */
 .cover-poster {
-    width: 120px;
-    height: 180px;
+    width: 140px;
+    height: 210px;
     flex-shrink: 0;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--color-bg-tertiary);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
 .cover-poster img {
@@ -131,6 +146,7 @@
     object-fit: cover;
 }
 
+/* Cover Info */
 .cover-info {
     flex: 1;
     min-width: 0;
@@ -140,16 +156,17 @@
 }
 
 .series-title {
-    font-size: var(--font-size-xl);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
     font-weight: 700;
-    line-height: 1.3;
-    margin-bottom: var(--spacing-sm);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .series-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
     margin-bottom: var(--spacing-sm);
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
@@ -158,10 +175,19 @@
 .series-meta span {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+}
+
+.series-meta .match {
+    color: var(--color-accent);
+    font-weight: 600;
 }
 
 .series-meta .rating {
+    color: var(--color-vip);
+}
+
+.series-meta .rating i {
     color: var(--color-vip);
 }
 
@@ -172,72 +198,115 @@
 }
 
 .series-tags .badge-tag {
-    font-size: 10px;
-    padding: 3px 6px;
+    font-size: 11px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-sm);
 }
 
-/* Action Section */
+/* ========================================
+   Action Section - Netflix Style
+   ======================================== */
 .action-section {
-    padding: var(--spacing-lg);
-    padding-top: 0;
+    padding: var(--spacing-xl) 4%;
+    padding-top: var(--spacing-lg);
 }
 
 .action-section .btn-play {
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.action-section .btn-primary {
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    font-size: var(--font-size-base);
+    padding: var(--spacing-md) var(--spacing-xl);
+}
+
+.action-section .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.action-section .btn-primary i {
+    font-size: 1.2em;
 }
 
 .action-buttons {
     display: flex;
-    justify-content: space-around;
+    justify-content: flex-start;
+    gap: var(--spacing-xl);
 }
 
 .action-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: var(--spacing-sm);
     color: var(--color-text-secondary);
     background: none;
     border: none;
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: all var(--transition-fast);
 }
 
 .action-btn:hover,
 .action-btn.active {
-    color: var(--color-primary);
+    color: var(--color-text-primary);
 }
 
 .action-btn i {
-    font-size: 20px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--color-text-secondary);
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+}
+
+.action-btn:hover i {
+    border-color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.action-btn.active i {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
 }
 
 .action-btn span {
     font-size: var(--font-size-xs);
+    font-weight: 500;
 }
 
-/* Info Section */
+/* ========================================
+   Info Section
+   ======================================== */
 .info-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl) 4%;
     border-top: 1px solid var(--border-color);
 }
 
 .section-title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-xl);
     font-weight: 600;
     margin-bottom: var(--spacing-md);
 }
 
 .synopsis {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
     line-height: 1.7;
     color: var(--color-text-secondary);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: all var(--transition-base);
+    transition: all var(--transition-smooth);
 }
 
 .synopsis.expanded {
@@ -245,16 +314,22 @@
 }
 
 .btn-expand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
+    margin-top: var(--spacing-md);
     padding: 0;
     font-size: var(--font-size-sm);
-    color: var(--color-primary);
+    font-weight: 500;
+    color: var(--color-text-secondary);
     background: none;
     border: none;
     cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.btn-expand:hover {
+    color: var(--color-text-primary);
 }
 
 .btn-expand i {
@@ -265,9 +340,11 @@
     transform: rotate(180deg);
 }
 
-/* Episodes Section */
+/* ========================================
+   Episodes Section - Netflix Style
+   ======================================== */
 .episodes-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl) 4%;
     border-top: 1px solid var(--border-color);
 }
 
@@ -275,7 +352,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
 }
 
 .episodes-header .section-title {
@@ -289,32 +366,41 @@
 }
 
 .episodes-filter select {
-    padding: 6px 12px;
-    background: var(--color-bg-secondary);
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     color: var(--color-text-primary);
     font-size: var(--font-size-sm);
     cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.episodes-filter select:hover {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-sort {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-secondary);
+    background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .btn-sort:hover {
-    background: var(--color-bg-tertiary);
+    background: rgba(255, 255, 255, 0.15);
     color: var(--color-text-primary);
+}
+
+.btn-sort i {
+    transition: transform var(--transition-fast);
 }
 
 .btn-sort.reversed i {
@@ -324,8 +410,8 @@
 /* Episodes Grid */
 .episodes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: var(--spacing-sm);
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: var(--spacing-md);
 }
 
 .episode-card {
@@ -333,9 +419,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-md);
-    background: var(--color-bg-card);
-    border: 1px solid var(--border-color);
+    padding: var(--spacing-lg) var(--spacing-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
     text-align: center;
     cursor: pointer;
@@ -343,12 +429,13 @@
 }
 
 .episode-card:hover {
-    background: var(--color-bg-card-hover);
-    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
 .episode-card.current {
-    background: rgba(99, 102, 241, 0.1);
+    background: rgba(229, 9, 20, 0.15);
     border-color: var(--color-primary);
 }
 
@@ -357,9 +444,13 @@
 }
 
 .episode-card .episode-number {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.episode-card.current .episode-number {
+    color: var(--color-primary);
 }
 
 .episode-card .episode-title {
@@ -375,7 +466,7 @@
     width: 100%;
     height: 3px;
     margin-top: var(--spacing-sm);
-    background: var(--color-bg-tertiary);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-full);
     overflow: hidden;
 }
@@ -395,7 +486,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     border-radius: var(--radius-md);
 }
 
@@ -405,102 +496,118 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: var(--color-vip);
-    font-size: 20px;
+    font-size: 24px;
 }
 
-/* Related Section */
+/* ========================================
+   Related Section - Netflix Style
+   ======================================== */
 .related-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl) 4%;
     border-top: 1px solid var(--border-color);
 }
 
-.series-slider {
+/* Use same slider styles from home.css */
+.related-section .series-slider {
     display: flex;
-    gap: var(--spacing-md);
+    gap: 10px;
     overflow-x: auto;
+    overflow-y: visible;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: var(--spacing-sm);
+    padding: var(--spacing-lg) 0;
+    margin: calc(var(--spacing-lg) * -1) 0;
 }
 
-.series-slider::-webkit-scrollbar {
+.related-section .series-slider::-webkit-scrollbar {
     display: none;
 }
 
-.series-slider .series-card {
-    flex: 0 0 140px;
+.related-section .series-card {
+    flex: 0 0 150px;
     scroll-snap-align: start;
     text-decoration: none;
     color: inherit;
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+    transform-origin: center;
+    position: relative;
+    z-index: 1;
 }
 
-.series-slider .series-poster {
+.related-section .series-card:hover {
+    transform: scale(1.15);
+    z-index: 10;
+}
+
+.related-section .series-poster {
     position: relative;
     width: 100%;
     aspect-ratio: 2/3;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--color-bg-tertiary);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all var(--transition-smooth);
 }
 
-.series-slider .series-poster img {
+.related-section .series-card:hover .series-poster {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.related-section .series-poster img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--transition-base);
+    transition: transform var(--transition-smooth);
 }
 
-.series-slider .series-card:hover .series-poster {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.series-slider .series-card:hover .series-poster img {
+.related-section .series-card:hover .series-poster img {
     transform: scale(1.05);
 }
 
-.series-slider .series-play-overlay {
+.related-section .series-play-overlay {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
     opacity: 0;
-    transition: opacity var(--transition-base);
+    transition: opacity var(--transition-fast);
 }
 
-.series-slider .series-card:hover .series-play-overlay {
+.related-section .series-card:hover .series-play-overlay {
     opacity: 1;
 }
 
-.series-slider .series-play-btn {
-    width: 40px;
-    height: 40px;
+.related-section .series-play-btn {
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-primary);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: var(--radius-full);
-    color: white;
-    font-size: 14px;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+    border: none;
+    color: var(--color-bg-primary);
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     transform: scale(0.8);
-    transition: transform var(--transition-base);
+    transition: all var(--transition-fast);
+    cursor: pointer;
 }
 
-.series-slider .series-card:hover .series-play-btn {
+.related-section .series-card:hover .series-play-btn {
     transform: scale(1);
 }
 
-.series-slider .series-info {
+.related-section .series-info {
     padding: var(--spacing-sm) 0;
 }
 
-.series-slider .series-title {
+.related-section .series-title {
     font-size: var(--font-size-sm);
     font-weight: 500;
     line-height: 1.4;
@@ -512,73 +619,82 @@
     transition: color var(--transition-fast);
 }
 
-.series-slider .series-card:hover .series-title {
-    color: var(--color-primary);
+.related-section .series-card:hover .series-title {
+    color: var(--color-text-primary);
 }
 
-/* Responsive */
+/* ========================================
+   Responsive
+   ======================================== */
 @media (min-width: 640px) {
     .cover-content {
-        padding-top: 180px;
+        padding-top: 200px;
     }
 
     .cover-poster {
-        width: 150px;
-        height: 225px;
-    }
-
-    .series-title {
-        font-size: var(--font-size-2xl);
+        width: 160px;
+        height: 240px;
     }
 
     .episodes-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
 
-    .series-slider .series-card {
-        flex: 0 0 160px;
+    .related-section .series-card {
+        flex: 0 0 165px;
     }
 }
 
 @media (min-width: 768px) {
     .cover-section {
-        min-height: 500px;
+        min-height: 520px;
     }
 
-    .cover-image {
-        height: 450px;
-    }
-
+    .cover-image,
     .cover-overlay {
-        height: 450px;
+        height: 500px;
     }
 
     .cover-content {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding-top: 220px;
+        padding-top: 250px;
     }
 
     .cover-poster {
-        width: 180px;
-        height: 270px;
+        width: 200px;
+        height: 300px;
     }
 
     .action-section,
     .info-section,
     .episodes-section,
     .related-section {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
     }
 
-    .series-slider .series-card {
-        flex: 0 0 180px;
+    .related-section .series-card {
+        flex: 0 0 185px;
     }
 
-    .series-slider .series-play-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 18px;
+    .episodes-grid {
+        gap: var(--spacing-lg);
+    }
+}
+
+@media (min-width: 1024px) {
+
+    .cover-image,
+    .cover-overlay {
+        height: 550px;
+    }
+
+    .cover-content {
+        padding-top: 280px;
+    }
+
+    .related-section .series-card {
+        flex: 0 0 200px;
     }
 }

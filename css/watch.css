@@ -1,5 +1,5 @@
 /* ========================================
-   Watch Page Styles
+   Watch Page Styles - Netflix Style
    ======================================== */
 
 .watch-page {
@@ -17,7 +17,9 @@
     height: 100dvh;
 }
 
-/* Player Section */
+/* ========================================
+   Player Section
+   ======================================== */
 .player-section {
     flex: 1;
     display: flex;
@@ -26,7 +28,7 @@
     position: relative;
 }
 
-/* Top Bar */
+/* Top Bar - Netflix Style */
 .player-top-bar {
     position: absolute;
     top: 0;
@@ -35,11 +37,11 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%);
     z-index: 20;
     opacity: 1;
-    transition: opacity var(--transition-base);
+    transition: opacity var(--transition-smooth);
 }
 
 .player-top-bar.hidden {
@@ -48,8 +50,8 @@
 }
 
 .player-top-bar .btn-back {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -57,6 +59,14 @@
     border-radius: var(--radius-full);
     color: white;
     flex-shrink: 0;
+    transition: all var(--transition-fast);
+    border: none;
+    cursor: pointer;
+}
+
+.player-top-bar .btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
 }
 
 .player-title {
@@ -65,11 +75,12 @@
 }
 
 .player-title h1 {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 2px;
 }
 
 .player-title span {
@@ -82,7 +93,18 @@
     gap: var(--spacing-sm);
 }
 
-/* Video Container */
+.player-actions .btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+}
+
+.player-actions .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   Video Container
+   ======================================== */
 .video-container {
     flex: 1;
     position: relative;
@@ -101,7 +123,9 @@
     background: #000;
 }
 
-/* Video Overlay */
+/* ========================================
+   Video Overlay
+   ======================================== */
 .video-overlay {
     position: absolute;
     inset: 0;
@@ -109,6 +133,7 @@
     align-items: center;
     justify-content: center;
     z-index: 10;
+    pointer-events: none;
 }
 
 .video-loading {
@@ -120,35 +145,42 @@
 }
 
 .video-loading .spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
     border-top-color: var(--color-primary);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.9s linear infinite;
+}
+
+.video-loading p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
 }
 
 .video-loading.hidden {
     display: none;
 }
 
+/* Center Play Button */
 .video-play-btn {
     width: 80px;
     height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(99, 102, 241, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border: none;
     border-radius: 50%;
-    color: white;
-    font-size: 28px;
+    color: var(--color-bg-primary);
+    font-size: 32px;
     cursor: pointer;
     transition: all var(--transition-fast);
     opacity: 0;
     transform: scale(0.8);
     pointer-events: auto;
     z-index: 15;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
 .video-overlay.show-play .video-play-btn {
@@ -157,8 +189,12 @@
 }
 
 .video-play-btn:hover {
-    background: var(--color-primary);
-    transform: scale(1.1);
+    background: white;
+    transform: scale(1.08);
+}
+
+.video-play-btn i {
+    margin-left: 4px;
 }
 
 /* Double Tap Areas */
@@ -166,42 +202,43 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 40%;
+    width: 35%;
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 .double-tap-area.left {
     left: 0;
     justify-content: flex-start;
-    padding-left: 20%;
+    padding-left: 15%;
 }
 
 .double-tap-area.right {
     right: 0;
     justify-content: flex-end;
-    padding-right: 20%;
+    padding-right: 15%;
 }
 
 .tap-indicator {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: var(--spacing-md);
-    background: rgba(0, 0, 0, 0.7);
+    gap: 6px;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: rgba(0, 0, 0, 0.85);
     border-radius: var(--radius-lg);
     color: white;
     font-size: var(--font-size-sm);
+    font-weight: 600;
     opacity: 0;
     transform: scale(0.8);
     transition: all var(--transition-fast);
 }
 
 .tap-indicator i {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .double-tap-area.active .tap-indicator {
@@ -215,24 +252,27 @@
     top: 20px;
     right: 20px;
     font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.25);
     pointer-events: none;
     z-index: 5;
+    letter-spacing: 1px;
 }
 
-/* Video Controls */
+/* ========================================
+   Video Controls - Netflix Style
+   ======================================== */
 .video-controls {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    padding: var(--spacing-md) var(--spacing-lg);
-    padding-bottom: calc(var(--spacing-lg) + env(safe-area-inset-bottom, 0));
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0));
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
     z-index: 20;
     opacity: 1;
-    transition: opacity var(--transition-base);
+    transition: opacity var(--transition-smooth);
 }
 
 .video-controls.hidden {
@@ -240,19 +280,21 @@
     pointer-events: none;
 }
 
-/* Progress Bar */
+/* Progress Bar - Netflix Style */
 .progress-container {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
 }
 
 .time-current,
 .time-total {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
     color: white;
-    min-width: 45px;
+    min-width: 50px;
+    font-variant-numeric: tabular-nums;
 }
 
 .time-total {
@@ -261,15 +303,16 @@
 
 .progress-bar {
     flex: 1;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
+    height: 5px;
+    background: rgba(255, 255, 255, 0.25);
     border-radius: var(--radius-full);
     position: relative;
     cursor: pointer;
+    transition: height var(--transition-fast);
 }
 
 .progress-bar:hover {
-    height: 6px;
+    height: 8px;
 }
 
 .progress-buffered {
@@ -277,8 +320,9 @@
     top: 0;
     left: 0;
     height: 100%;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.35);
     border-radius: var(--radius-full);
+    transition: width 0.1s linear;
 }
 
 .progress-played {
@@ -288,22 +332,28 @@
     height: 100%;
     background: var(--color-primary);
     border-radius: var(--radius-full);
+    transition: width 0.1s linear;
 }
 
 .progress-thumb {
     position: absolute;
     top: 50%;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     background: var(--color-primary);
     border-radius: 50%;
     transform: translate(-50%, -50%);
     opacity: 0;
-    transition: opacity var(--transition-fast);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(229, 9, 20, 0.5);
 }
 
 .progress-bar:hover .progress-thumb {
     opacity: 1;
+}
+
+.progress-bar:active .progress-thumb {
+    transform: translate(-50%, -50%) scale(1.2);
 }
 
 /* Control Buttons */
@@ -321,27 +371,37 @@
 }
 
 .ctrl-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-full);
     color: white;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .ctrl-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+}
+
+.ctrl-btn:active {
+    transform: scale(0.95);
 }
 
 .ctrl-btn:disabled {
-    opacity: 0.3;
+    opacity: 0.35;
     cursor: not-allowed;
+}
+
+.ctrl-btn:disabled:hover {
+    background: transparent;
+    transform: none;
 }
 
 /* Volume Control */
@@ -353,17 +413,17 @@
 .volume-slider-container {
     width: 0;
     overflow: hidden;
-    transition: width var(--transition-base);
+    transition: width var(--transition-smooth);
 }
 
 .volume-control:hover .volume-slider-container {
-    width: 80px;
+    width: 90px;
     margin-left: var(--spacing-sm);
 }
 
 .volume-slider {
-    width: 80px;
-    height: 4px;
+    width: 90px;
+    height: 5px;
     -webkit-appearance: none;
     background: rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-full);
@@ -377,15 +437,26 @@
     background: white;
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Episode Info Bar */
+.volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* ========================================
+   Episode Info Bar
+   ======================================== */
 .episode-info-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-lg) var(--spacing-lg);
-    margin-top: var(--spacing-md);
+    padding: var(--spacing-lg);
     background: var(--color-bg-secondary);
     border-top: 1px solid var(--border-color);
 }
@@ -393,7 +464,7 @@
 .episode-info h2 {
     font-size: var(--font-size-base);
     font-weight: 600;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .episode-info p {
@@ -401,15 +472,21 @@
     color: var(--color-text-secondary);
 }
 
-/* Episodes Sidebar */
+#btn-toggle-episodes {
+    white-space: nowrap;
+}
+
+/* ========================================
+   Episodes Sidebar - Netflix Style
+   ======================================== */
 .episodes-sidebar {
-    width: 320px;
+    width: 360px;
     background: var(--color-bg-secondary);
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     transform: translateX(0);
-    transition: transform var(--transition-base);
+    transition: transform var(--transition-smooth);
 }
 
 .episodes-sidebar.collapsed {
@@ -425,26 +502,33 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
 }
 
 .sidebar-header h3 {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
     font-weight: 600;
 }
 
 .btn-close {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: none;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-tertiary);
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-full);
     color: var(--color-text-secondary);
     cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .sidebar-content {
@@ -453,14 +537,14 @@
     padding: var(--spacing-md);
 }
 
-/* Episode Item */
+/* Episode Item - Netflix Style */
 .episode-item {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
-    background: var(--color-bg-card);
-    border: 1px solid var(--border-color);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-sm);
     cursor: pointer;
@@ -468,29 +552,40 @@
 }
 
 .episode-item:hover {
-    background: var(--color-bg-card-hover);
-    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .episode-item.current {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .episode-item .ep-num {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--color-bg-tertiary);
     border-radius: var(--radius-md);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: var(--font-size-base);
     flex-shrink: 0;
+    transition: all var(--transition-fast);
 }
 
 .episode-item.current .ep-num {
     background: var(--color-primary);
+    color: white;
+}
+
+.episode-item:hover .ep-num {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.episode-item.current:hover .ep-num {
+    background: var(--color-primary-light);
 }
 
 .episode-item .ep-info {
@@ -501,7 +596,10 @@
 .episode-item .ep-title {
     font-size: var(--font-size-sm);
     font-weight: 500;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .episode-item .ep-duration {
@@ -511,24 +609,28 @@
 
 .episode-item .ep-playing {
     color: var(--color-primary);
-    font-size: 16px;
+    font-size: 18px;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* Next Episode Toast */
+/* ========================================
+   Next Episode Toast - Netflix Style
+   ======================================== */
 .next-episode-toast {
     position: fixed;
-    bottom: 100px;
+    bottom: 120px;
     left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--color-bg-secondary);
+    transform: translateX(-50%) translateY(30px);
+    background: rgba(30, 30, 30, 0.95);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--spacing-md) var(--spacing-lg);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
     z-index: 100;
     opacity: 0;
     visibility: hidden;
-    transition: all var(--transition-base);
+    transition: all var(--transition-smooth);
+    backdrop-filter: blur(20px);
 }
 
 .next-episode-toast.visible {
@@ -549,14 +651,21 @@
     font-size: var(--font-size-sm);
 }
 
+.next-episode-content strong {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
 .next-episode-actions {
     display: flex;
     gap: var(--spacing-sm);
 }
 
-/* Ad Modal */
+/* ========================================
+   Ad Modal
+   ======================================== */
 .ad-modal-content {
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
 }
 
@@ -567,16 +676,17 @@
 }
 
 .ad-header i {
-    font-size: 32px;
+    font-size: 36px;
     margin-bottom: var(--spacing-sm);
 }
 
 .ad-header h3 {
     font-size: var(--font-size-lg);
+    font-weight: 600;
 }
 
 .ad-body {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl);
 }
 
 .ad-body p {
@@ -595,7 +705,7 @@
 
 .ad-container:hover {
     border-color: var(--color-primary);
-    background: var(--color-bg-card-hover);
+    background: rgba(229, 9, 20, 0.1);
 }
 
 .ad-placeholder {
@@ -607,26 +717,28 @@
 }
 
 .ad-placeholder i {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .ad-footer {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
-    padding: 0 var(--spacing-lg) var(--spacing-lg);
+    padding: 0 var(--spacing-xl) var(--spacing-xl);
 }
 
 .ad-note {
     padding: var(--spacing-md);
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(255, 215, 0, 0.1);
     color: var(--color-vip);
     font-size: var(--font-size-xs);
     border-radius: var(--radius-md);
-    margin: 0 var(--spacing-lg) var(--spacing-lg);
+    margin: 0 var(--spacing-xl) var(--spacing-xl);
 }
 
-/* Fullscreen Styles */
+/* ========================================
+   Fullscreen Styles
+   ======================================== */
 .watch-page:fullscreen .player-section,
 .watch-page:-webkit-full-screen .player-section {
     height: 100vh;
@@ -642,16 +754,19 @@
     display: none;
 }
 
-/* Responsive */
+/* ========================================
+   Responsive - Tablet
+   ======================================== */
 @media (max-width: 1023px) {
     .episodes-sidebar {
         position: fixed;
         top: 0;
         right: 0;
         bottom: 0;
-        width: 300px;
+        width: 340px;
         transform: translateX(100%);
         z-index: 30;
+        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
     }
 
     .episodes-sidebar.open {
@@ -663,6 +778,9 @@
     }
 }
 
+/* ========================================
+   Responsive - Mobile
+   ======================================== */
 @media (max-width: 767px) {
     .player-section {
         height: auto;
@@ -670,16 +788,24 @@
 
     .video-container {
         aspect-ratio: 9/16;
-        max-height: 70vh;
+        max-height: 65vh;
     }
 
     .watch-container {
         flex-direction: column;
     }
 
+    .player-top-bar {
+        padding: var(--spacing-md);
+    }
+
+    .player-title h1 {
+        font-size: var(--font-size-base);
+    }
+
     .episodes-sidebar {
         width: 100%;
-        height: 50vh;
+        height: 55vh;
         position: fixed;
         bottom: 0;
         left: 0;
@@ -695,8 +821,29 @@
         transform: translateY(0);
     }
 
+    .video-controls {
+        padding: var(--spacing-md);
+    }
+
+    .ctrl-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
     .volume-control .volume-slider-container {
         display: none;
+    }
+
+    .next-episode-toast {
+        bottom: 80px;
+        left: var(--spacing-md);
+        right: var(--spacing-md);
+        transform: translateY(30px);
+    }
+
+    .next-episode-toast.visible {
+        transform: translateY(0);
     }
 }
 
