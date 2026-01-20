@@ -263,7 +263,7 @@ function updateSeriesInfo() {
         name = seriesData?.bookName || seriesData?.name || 'ไม่ทราบชื่อ';
     }
 
-    document.title = `${name} - ตอนที่ ${episodeNum} - DramPop`;
+    document.title = `${name} - ตอนที่ ${episodeNum} - DramaPop`;
     document.getElementById('video-title').textContent = name;
     document.getElementById('episode-title-bar').textContent = name;
 }

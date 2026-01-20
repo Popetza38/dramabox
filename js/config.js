@@ -7,20 +7,20 @@ const CONFIG = {
     API_BASE_URL: 'https://apith-git-main-popetza38s-projects.vercel.app',
 
     // Site Info
-    SITE_NAME: 'DramPop',
-    SITE_TITLE: 'DramPop - ดูซีรี่ย์ออนไลน์ฟรี',
+    SITE_NAME: 'DramaPop',
+    SITE_TITLE: 'DramaPop - ดูซีรี่ย์ออนไลน์ฟรี',
     SITE_DESCRIPTION: 'ดูซีรี่ย์ออนไลน์ พากย์ไทย ซับไทย คุณภาพสูง อัพเดทใหม่ทุกวัน',
 
     // Local Storage Keys
     STORAGE_KEYS: {
-        USER: 'DramPop_user',
-        TOKEN: 'DramPop_token',
-        WATCH_HISTORY: 'DramPop_history',
-        FAVORITES: 'DramPop_favorites',
-        SETTINGS: 'DramPop_settings',
-        DAILY_CHECK: 'DramPop_daily_check',
-        POINTS: 'DramPop_points',
-        AD_UNLOCK: 'DramPop_ad_unlock'
+        USER: 'DramaPop_user',
+        TOKEN: 'DramaPop_token',
+        WATCH_HISTORY: 'DramaPop_history',
+        FAVORITES: 'DramaPop_favorites',
+        SETTINGS: 'DramaPop_settings',
+        DAILY_CHECK: 'DramaPop_daily_check',
+        POINTS: 'DramaPop_points',
+        AD_UNLOCK: 'DramaPop_ad_unlock'
     },
 
     // Ads Configuration

@@ -124,7 +124,7 @@ function renderSeriesInfo(data) {
     const tags = data.tags || data.tagV3s || [];
 
     // Update page title
-    document.title = `${name} - DramPop`;
+    document.title = `${name} - DramaPop`;
     document.getElementById('nav-title').textContent = name;
 
     // Cover image
@@ -266,7 +266,7 @@ function shareSeries() {
     if (navigator.share) {
         navigator.share({
             title: name,
-            text: `ดู ${name} บน DramPop`,
+            text: `ดู ${name} บน DramaPop`,
             url: url
         });
     } else {
