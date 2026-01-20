@@ -528,12 +528,35 @@ function updateVolumeIcon() {
 
 // Toggle fullscreen
 function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen?.() ||
-            document.documentElement.webkitRequestFullscreen?.();
+    // Check if already in fullscreen
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
     } else {
-        document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+        // Enter fullscreen on video container
+        if (videoContainer.requestFullscreen) {
+            videoContainer.requestFullscreen();
+        } else if (videoContainer.webkitRequestFullscreen) {
+            videoContainer.webkitRequestFullscreen();
+        } else if (video.webkitEnterFullscreen) {
+            // iOS Safari - use native video fullscreen
+            video.webkitEnterFullscreen();
+        }
     }
+}
+
+// Update fullscreen button icon on fullscreen change
+document.addEventListener('fullscreenchange', updateFullscreenIcon);
+document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+
+function updateFullscreenIcon() {
+    const btn = document.getElementById('btn-fullscreen');
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+    btn.innerHTML = `<i class="fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}"></i>`;
 }
 
 // Toggle PIP
