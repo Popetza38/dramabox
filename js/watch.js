@@ -131,15 +131,12 @@ const WatchPage = {
         const video = document.getElementById('videoPlayer');
         if (this.state.hls) this.state.hls.destroy();
 
-        // Detect iOS/iPadOS - enable native controls for fullscreen support
+        // Detect iOS/iPadOS
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-        if (isIOS) {
-            // iOS requires native controls for reliable fullscreen
-            video.controls = true;
-            video.setAttribute('controls', 'controls');
-        }
+        // iOS: Don't enable native controls - use CSS fullscreen instead
+        // Native iOS fullscreen causes video to shrink when changing episodes
 
         if (Hls.isSupported() && url.includes('.m3u8')) {
             // Configure HLS.js for highest quality
@@ -230,27 +227,30 @@ const WatchPage = {
     loadVideoKeepFullscreen(url, restoreFullscreen) {
         const video = document.getElementById('videoPlayer');
         const container = document.getElementById('videoContainer');
-        if (this.state.hls) this.state.hls.destroy();
+        const wrapper = document.querySelector('.video-wrapper');
 
         // Detect iOS/iPadOS
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-        if (isIOS) {
-            video.controls = true;
-            video.setAttribute('controls', 'controls');
+        // IMPORTANT: Set video size BEFORE destroying HLS to prevent shrinking
+        if (isIOS && this.state.isFullscreen) {
+            // Lock video size during transition
+            video.style.cssText = 'width:100%!important;height:100%!important;max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;';
+            wrapper.style.cssText = 'position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;padding:0!important;margin:0!important;background:#000!important;';
+            container.style.cssText = 'width:100vw!important;height:100vh!important;border-radius:0!important;';
         }
 
+        if (this.state.hls) this.state.hls.destroy();
+
+        // iOS: Don't enable native controls - use CSS fullscreen instead
+        // Native iOS fullscreen causes video to shrink when changing episodes
+
         const restoreFullscreenAfterLoad = () => {
-            // For iOS CSS fullscreen - ensure video style is applied
-            const wrapper = document.querySelector('.video-wrapper');
-            if (isIOS && wrapper?.classList.contains('css-fullscreen')) {
-                // Force video to fill screen
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.maxWidth = '100vw';
-                video.style.maxHeight = '100vh';
-                video.style.objectFit = 'contain';
+            // For iOS inline styles fullscreen - reapply styles after video load
+            if (isIOS && this.state.isFullscreen) {
+                // Reapply inline styles to ensure video fills screen
+                video.style.cssText = 'width:100%!important;height:100%!important;max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;';
             }
 
             if (restoreFullscreen && !isIOS) {
@@ -418,17 +418,21 @@ const WatchPage = {
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
             if (isIOS) {
-                // iOS: Use CSS-based fullscreen (persists when changing episodes)
-                if (wrapper.classList.contains('css-fullscreen')) {
-                    // Exit CSS fullscreen
-                    wrapper.classList.remove('css-fullscreen');
-                    document.body.classList.remove('css-fullscreen-active');
+                // iOS: Use inline styles for fullscreen (highest priority, persists when changing episodes)
+                if (this.state.isFullscreen) {
+                    // Exit CSS fullscreen - remove inline styles
+                    wrapper.style.cssText = '';
+                    container.style.cssText = '';
+                    video.style.cssText = '';
+                    document.body.style.overflow = '';
                     this.state.isFullscreen = false;
                     fullscreen.innerHTML = '<i class="fas fa-expand"></i>';
                 } else {
-                    // Enter CSS fullscreen
-                    wrapper.classList.add('css-fullscreen');
-                    document.body.classList.add('css-fullscreen-active');
+                    // Enter CSS fullscreen - apply inline styles
+                    wrapper.style.cssText = 'position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;padding:0!important;margin:0!important;background:#000!important;';
+                    container.style.cssText = 'width:100vw!important;height:100vh!important;border-radius:0!important;';
+                    video.style.cssText = 'width:100%!important;height:100%!important;max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;';
+                    document.body.style.overflow = 'hidden';
                     this.state.isFullscreen = true;
                     fullscreen.innerHTML = '<i class="fas fa-compress"></i>';
                 }
