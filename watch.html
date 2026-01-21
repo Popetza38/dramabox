@@ -235,6 +235,13 @@
             opacity: 1;
         }
 
+        /* Always show controls on touch devices (iOS/mobile) */
+        @media (pointer: coarse) {
+            .video-controls {
+                opacity: 1 !important;
+            }
+        }
+
         /* Progress Bar */
         .video-progress {
             height: 4px;
