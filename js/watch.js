@@ -23,22 +23,17 @@ const WatchPage = {
             return;
         }
 
-        // Detect iOS/iPadOS - use native controls
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-        if (isIOS) {
-            // Hide custom controls on iOS
-            const customControls = document.getElementById('videoControls');
-            if (customControls) {
-                customControls.style.display = 'none';
-            }
-            // Enable native controls
-            const video = document.getElementById('videoPlayer');
-            if (video) {
-                video.controls = true;
-                video.setAttribute('controls', 'controls');
-            }
+        // Use native controls on ALL platforms
+        // Hide custom controls
+        const customControls = document.getElementById('videoControls');
+        if (customControls) {
+            customControls.style.display = 'none';
+        }
+        // Enable native controls
+        const video = document.getElementById('videoPlayer');
+        if (video) {
+            video.controls = true;
+            video.setAttribute('controls', 'controls');
         }
 
         this.bindEvents();
