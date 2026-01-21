@@ -23,6 +23,24 @@ const WatchPage = {
             return;
         }
 
+        // Detect iOS/iPadOS - use native controls
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            // Hide custom controls on iOS
+            const customControls = document.getElementById('videoControls');
+            if (customControls) {
+                customControls.style.display = 'none';
+            }
+            // Enable native controls
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                video.controls = true;
+                video.setAttribute('controls', 'controls');
+            }
+        }
+
         this.bindEvents();
         await this.loadDrama();
     },
@@ -429,37 +447,9 @@ const WatchPage = {
 
         fullscreen?.addEventListener('click', () => {
             const container = document.getElementById('videoContainer');
-            const wrapper = document.querySelector('.video-wrapper');
 
-            // Detect iOS/iPadOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-            if (isIOS) {
-                // iOS: Use native video fullscreen (webkitEnterFullscreen)
-                if (video.webkitEnterFullscreen) {
-                    try {
-                        video.webkitEnterFullscreen();
-                        this.state.isFullscreen = true;
-                    } catch (e) {
-                        console.log('iOS fullscreen failed:', e);
-                        // Fallback: show alert
-                        Swal.fire({
-                            toast: true,
-                            position: 'top',
-                            icon: 'info',
-                            title: 'กรุณาใช้ปุ่มขยายบน video player',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            background: '#1a1a2e',
-                            color: '#fff'
-                        });
-                    }
-                } else if (video.webkitRequestFullscreen) {
-                    video.webkitRequestFullscreen();
-                    this.state.isFullscreen = true;
-                }
-            } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+            // iOS uses native controls, so this handler is mainly for desktop
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
                 // Exit fullscreen
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
