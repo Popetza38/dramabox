@@ -253,10 +253,22 @@ const WatchPage = {
         }
 
         const restoreFullscreenAfterLoad = () => {
-            // For iOS inline styles fullscreen - reapply styles after video load
-            if (isIOS && this.state.isFullscreen) {
-                // Reapply inline styles to ensure video fills screen
-                video.style.cssText = 'width:100%!important;height:100%!important;max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;';
+            // For iOS: Show toast notification to re-enter fullscreen
+            if (isIOS && restoreFullscreen) {
+                // iOS cannot programmatically restore fullscreen - inform user
+                setTimeout(() => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top',
+                        icon: 'info',
+                        title: 'กดเต็มจอได้ที่ปุ่มขยายในวิดีโอ',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        background: '#1a1a2e',
+                        color: '#fff'
+                    });
+                }, 500);
             }
 
             if (restoreFullscreen && !isIOS) {
