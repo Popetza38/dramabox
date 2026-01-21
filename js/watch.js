@@ -240,28 +240,17 @@ const WatchPage = {
         }
 
         const restoreFullscreenAfterLoad = () => {
-            if (restoreFullscreen) {
-                // Re-enter fullscreen after video loads
+            if (restoreFullscreen && !isIOS) {
+                // Desktop/Android: Re-enter native fullscreen after video loads
+                // iOS uses CSS fullscreen which persists automatically
                 setTimeout(() => {
-                    if (isIOS) {
-                        // iOS: use webkitEnterFullscreen on video element
-                        if (video.webkitEnterFullscreen) {
-                            try {
-                                video.webkitEnterFullscreen();
-                            } catch (e) {
-                                console.log('iOS fullscreen restore failed:', e);
-                            }
-                        }
-                    } else {
-                        // Desktop/Android: use container fullscreen
-                        if (container.requestFullscreen) {
-                            container.requestFullscreen().catch(() => { });
-                        } else if (container.webkitRequestFullscreen) {
-                            container.webkitRequestFullscreen();
-                        }
+                    if (container.requestFullscreen) {
+                        container.requestFullscreen().catch(() => { });
+                    } else if (container.webkitRequestFullscreen) {
+                        container.webkitRequestFullscreen();
                     }
                     this.state.isFullscreen = true;
-                }, 300); // Increased delay for iOS
+                }, 300);
             }
             document.getElementById('videoLoading')?.classList.add('hidden');
         };
@@ -410,40 +399,26 @@ const WatchPage = {
 
         fullscreen?.addEventListener('click', () => {
             const container = document.getElementById('videoContainer');
+            const wrapper = document.querySelector('.video-wrapper');
 
             // Detect iOS/iPadOS
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
             if (isIOS) {
-                // iOS: Must use webkitEnterFullscreen on video element directly
-                // Also add controls temporarily for native fullscreen button
-                if (video.webkitEnterFullscreen) {
-                    // Add small delay for iOS 17+ compatibility
-                    setTimeout(() => {
-                        try {
-                            video.webkitEnterFullscreen();
-                        } catch (e) {
-                            // Fallback: show native controls so user can use native fullscreen button
-                            video.controls = true;
-                            video.setAttribute('controls', 'controls');
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'เต็มจอ',
-                                text: 'กรุณากดปุ่มเต็มจอบน video player',
-                                timer: 3000,
-                                showConfirmButton: false,
-                                background: '#1a1a2e',
-                                color: '#fff'
-                            });
-                        }
-                    }, 100);
-                } else if (video.webkitRequestFullscreen) {
-                    video.webkitRequestFullscreen();
+                // iOS: Use CSS-based fullscreen (persists when changing episodes)
+                if (wrapper.classList.contains('css-fullscreen')) {
+                    // Exit CSS fullscreen
+                    wrapper.classList.remove('css-fullscreen');
+                    document.body.classList.remove('css-fullscreen-active');
+                    this.state.isFullscreen = false;
+                    fullscreen.innerHTML = '<i class="fas fa-expand"></i>';
                 } else {
-                    // Fallback: enable native controls for user to access fullscreen
-                    video.controls = true;
-                    video.setAttribute('controls', 'controls');
+                    // Enter CSS fullscreen
+                    wrapper.classList.add('css-fullscreen');
+                    document.body.classList.add('css-fullscreen-active');
+                    this.state.isFullscreen = true;
+                    fullscreen.innerHTML = '<i class="fas fa-compress"></i>';
                 }
             } else if (document.fullscreenElement || document.webkitFullscreenElement) {
                 // Exit fullscreen
