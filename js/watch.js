@@ -117,6 +117,16 @@ const WatchPage = {
         const video = document.getElementById('videoPlayer');
         if (this.state.hls) this.state.hls.destroy();
 
+        // Detect iOS/iPadOS - enable native controls for fullscreen support
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            // iOS requires native controls for reliable fullscreen
+            video.controls = true;
+            video.setAttribute('controls', 'controls');
+        }
+
         if (Hls.isSupported() && url.includes('.m3u8')) {
             this.state.hls = new Hls();
             this.state.hls.loadSource(url);
@@ -125,6 +135,13 @@ const WatchPage = {
                 video.play();
                 document.getElementById('videoLoading')?.classList.add('hidden');
             });
+        } else if (isIOS && url.includes('.m3u8')) {
+            // iOS Safari supports HLS natively without HLS.js
+            video.src = url;
+            video.addEventListener('loadeddata', () => {
+                video.play();
+                document.getElementById('videoLoading')?.classList.add('hidden');
+            }, { once: true });
         } else {
             video.src = url;
             video.addEventListener('loadeddata', () => {
@@ -295,9 +312,40 @@ const WatchPage = {
         fullscreen?.addEventListener('click', () => {
             const container = document.getElementById('videoContainer');
 
-            // iOS Safari uses webkitEnterFullscreen on video element directly
-            if (video.webkitEnterFullscreen) {
-                video.webkitEnterFullscreen();
+            // Detect iOS/iPadOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            if (isIOS) {
+                // iOS: Must use webkitEnterFullscreen on video element directly
+                // Also add controls temporarily for native fullscreen button
+                if (video.webkitEnterFullscreen) {
+                    // Add small delay for iOS 17+ compatibility
+                    setTimeout(() => {
+                        try {
+                            video.webkitEnterFullscreen();
+                        } catch (e) {
+                            // Fallback: show native controls so user can use native fullscreen button
+                            video.controls = true;
+                            video.setAttribute('controls', 'controls');
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'เต็มจอ',
+                                text: 'กรุณากดปุ่มเต็มจอบน video player',
+                                timer: 3000,
+                                showConfirmButton: false,
+                                background: '#1a1a2e',
+                                color: '#fff'
+                            });
+                        }
+                    }, 100);
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else {
+                    // Fallback: enable native controls for user to access fullscreen
+                    video.controls = true;
+                    video.setAttribute('controls', 'controls');
+                }
             } else if (document.fullscreenElement || document.webkitFullscreenElement) {
                 // Exit fullscreen
                 if (document.exitFullscreen) {
@@ -311,6 +359,8 @@ const WatchPage = {
                     container.requestFullscreen();
                 } else if (container.webkitRequestFullscreen) {
                     container.webkitRequestFullscreen();
+                } else if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
                 }
             }
         });
