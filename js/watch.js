@@ -128,10 +128,23 @@ const WatchPage = {
         }
 
         if (Hls.isSupported() && url.includes('.m3u8')) {
-            this.state.hls = new Hls();
+            // Configure HLS.js for highest quality
+            this.state.hls = new Hls({
+                autoStartLoad: true,
+                startLevel: -1, // Start with auto selection
+                capLevelToPlayerSize: false, // Don't cap quality based on player size
+                maxBufferLength: 60,
+                maxMaxBufferLength: 120
+            });
             this.state.hls.loadSource(url);
             this.state.hls.attachMedia(video);
-            this.state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            this.state.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                // Set to highest quality level
+                if (data.levels && data.levels.length > 0) {
+                    const highestLevel = data.levels.length - 1;
+                    this.state.hls.currentLevel = highestLevel;
+                    console.log(`📺 Set video quality to: ${data.levels[highestLevel]?.height}p (Level ${highestLevel})`);
+                }
                 video.play();
                 document.getElementById('videoLoading')?.classList.add('hidden');
             });
@@ -154,6 +167,9 @@ const WatchPage = {
     // Switch episode without page reload (SPA-style)
     async switchEpisode(ep) {
         if (ep < 1 || ep > this.state.chapters.length) return;
+
+        // Save fullscreen state before switching
+        const wasFullscreen = document.fullscreenElement || document.webkitFullscreenElement || this.state.isFullscreen;
 
         // Show loading
         document.getElementById('videoLoading')?.classList.remove('hidden');
@@ -181,7 +197,7 @@ const WatchPage = {
         try {
             const video = await API.getVideoUrl(this.state.bookId, ep);
             const videoUrl = video.url || video.videoUrl || video;
-            this.loadVideo(videoUrl);
+            this.loadVideoKeepFullscreen(videoUrl, wasFullscreen);
 
             // Update watch history
             WatchHistory.update(this.state.bookId, {
@@ -191,6 +207,63 @@ const WatchPage = {
         } catch (error) {
             console.error('Error loading episode:', error);
             Common.showError('ไม่สามารถโหลดตอนนี้ได้');
+        }
+    },
+
+    // Load video and restore fullscreen state
+    loadVideoKeepFullscreen(url, restoreFullscreen) {
+        const video = document.getElementById('videoPlayer');
+        const container = document.getElementById('videoContainer');
+        if (this.state.hls) this.state.hls.destroy();
+
+        // Detect iOS/iPadOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            video.controls = true;
+            video.setAttribute('controls', 'controls');
+        }
+
+        const restoreFullscreenAfterLoad = () => {
+            if (restoreFullscreen && !isIOS) {
+                // Re-enter fullscreen after video loads
+                setTimeout(() => {
+                    if (container.requestFullscreen) {
+                        container.requestFullscreen().catch(() => { });
+                    } else if (container.webkitRequestFullscreen) {
+                        container.webkitRequestFullscreen();
+                    }
+                    this.state.isFullscreen = true;
+                }, 100);
+            }
+            document.getElementById('videoLoading')?.classList.add('hidden');
+        };
+
+        if (Hls.isSupported() && url.includes('.m3u8')) {
+            this.state.hls = new Hls({
+                autoStartLoad: true,
+                startLevel: -1,
+                capLevelToPlayerSize: false,
+                maxBufferLength: 60,
+                maxMaxBufferLength: 120
+            });
+            this.state.hls.loadSource(url);
+            this.state.hls.attachMedia(video);
+            this.state.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                if (data.levels && data.levels.length > 0) {
+                    const highestLevel = data.levels.length - 1;
+                    this.state.hls.currentLevel = highestLevel;
+                }
+                video.play();
+                restoreFullscreenAfterLoad();
+            });
+        } else {
+            video.src = url;
+            video.addEventListener('loadeddata', () => {
+                video.play();
+                restoreFullscreenAfterLoad();
+            }, { once: true });
         }
     },
 
