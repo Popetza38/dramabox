@@ -1,363 +1,286 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="ดูซีรี่ย์ออนไลน์ฟรี ซีรี่ย์จีน ซีรี่ย์เกาหลี ซีรี่ย์ไทย พากย์ไทย ซับไทย คมชัด HD">
-    <meta name="keywords" content="ดูซีรี่ย์, ซีรี่ย์จีน, ซีรี่ย์เกาหลี, ซีรี่ย์ออนไลน์, พากย์ไทย, ซับไทย, Dramabox">
-    <meta name="author" content="DramaPop">
-    <meta name="theme-color" content="#1a1a2e">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dramabox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
 
-    <title>DramaPop - ดูซีรี่ย์ออนไลน์ฟรี</title>
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
 
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="DramaPop">
-    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 3px;
+    }
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    .card:hover .card-img {
+      transform: scale(1.05);
+    }
 
-    <!-- Google Fonts - Niramit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    .card-img {
+      transition: transform 0.3s;
+    }
+  </style>
 </head>
 
-<body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loader">
-            <div class="loader-logo">
-                <i class="fas fa-film"></i>
-                <span>DramaPop</span>
-            </div>
-            <div class="loader-spinner">
-                <div class="loader-ring"></div>
-                <div class="loader-ring"></div>
-                <div class="loader-ring"></div>
-            </div>
-            <span class="loader-text">
-                กำลังโหลด
-                <span class="loader-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </span>
-            </span>
-        </div>
+<body class="bg-gradient-to-b from-gray-900 via-gray-900 to-black text-white min-h-screen">
+  <header class="sticky top-0 z-50 bg-gray-900/95 backdrop-blur border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <h1 class="text-xl font-bold text-cyan-400">Dramabox</h1>
+      <div class="flex-1 flex gap-2">
+        <input type="text" id="searchInput" placeholder="Cari drama..."
+          class="flex-1 max-w-md px-4 py-2 rounded-full bg-gray-800 border border-gray-700 focus:outline-none focus:border-cyan-500 text-sm">
+        <button onclick="searchDrama()"
+          class="px-5 py-2 bg-cyan-600 rounded-full hover:bg-cyan-700 text-sm font-medium">Cari</button>
+      </div>
+      <select id="langSelect" onchange="clearCache(); loadHome()"
+        class="px-3 py-2 bg-gray-800 rounded-lg border border-gray-700 text-sm">
+
+        <option value="th">🇹🇭 ไทย</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div id="feedSection">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">🔥 Trending</h2>
+        <button onclick="loadHome()" class="text-sm text-gray-400 hover:text-white">Refresh</button>
+      </div>
+      <div id="feed" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"></div>
     </div>
 
-    <!-- Header -->
-    <header class="header" id="header">
-        <div class="header-container">
-            <a href="index.html" class="logo">
-                <i class="fas fa-film logo-icon"></i>
-                <span class="logo-text">DramaPop</span>
-            </a>
-
-            <div class="search-container">
-                <form class="search-form" id="searchForm">
-                    <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาซีรี่ย์...">
-                    <button type="submit" class="search-btn">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
+    <div id="playerModal" class="hidden fixed inset-0 z-50 bg-black/90 overflow-y-auto">
+      <div class="min-h-screen flex items-start justify-center p-4">
+        <div class="w-full max-w-4xl bg-gray-900 rounded-2xl overflow-hidden shadow-2xl my-8">
+          <div class="relative bg-black aspect-video">
+            <video id="videoPlayer" controls class="w-full h-full"></video>
+            <button onclick="closePlayer()"
+              class="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70">✕</button>
+          </div>
+          <div class="p-5">
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h2 id="dramaTitle" class="text-xl font-bold mb-1"></h2>
+                <p id="dramaInfo" class="text-sm text-gray-500"></p>
+              </div>
+              <div class="flex gap-2">
+                <select id="subtitleSelect" onchange="changeSubtitle()"
+                  class="px-3 py-2 bg-gray-800 rounded-lg border border-gray-700 text-sm">
+                  <option value="-1">Subtitle: Off</option>
+                </select>
+              </div>
             </div>
-
-            <nav class="nav-desktop">
-                <a href="index.html" class="nav-link active" data-page="home">
-                    <i class="fas fa-home"></i> <span data-i18n="nav.home">หน้าแรก</span>
-                </a>
-                <a href="category.html?type=new" class="nav-link" data-page="new">
-                    <i class="fas fa-star"></i> <span data-i18n="nav.new">มาใหม่</span>
-                </a>
-                <a href="category.html?type=ranking" class="nav-link" data-page="ranking">
-                    <i class="fas fa-trophy"></i> <span data-i18n="nav.popular">ยอดนิยม</span>
-                </a>
-                <a href="history.html" class="nav-link" data-page="history">
-                    <i class="fas fa-history"></i> <span data-i18n="nav.history">ประวัติ</span>
-                </a>
-            </nav>
-
-            <!-- Language Selector -->
-            <div class="language-selector" id="languageSelector">
-                <button class="language-btn" id="languageBtn">
-                    <span class="flag-icon">🇹🇭</span>
-                    <span class="lang-text">ไทย</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="language-dropdown" id="languageDropdown">
-                    <div class="language-option active" data-lang="th">
-                        <span class="flag-icon">🇹🇭</span>
-                        <span>ไทย</span>
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="language-option" data-lang="en">
-                        <span class="flag-icon">🇺🇸</span>
-                        <span>English</span>
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="language-option" data-lang="zh">
-                        <span class="flag-icon">🇨🇳</span>
-                        <span>中文</span>
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="language-option" data-lang="ko">
-                        <span class="flag-icon">🇰🇷</span>
-                        <span>한국어</span>
-                        <i class="fas fa-check"></i>
-                    </div>
-                </div>
+            <div class="flex items-center gap-3 mb-4">
+              <select id="episodeSelect" onchange="playEpisode()"
+                class="flex-1 px-4 py-2 bg-gray-800 rounded-lg border border-gray-700"></select>
             </div>
-
-            <button class="mobile-search-btn" id="mobileSearchBtn">
-                <i class="fas fa-search"></i>
-            </button>
+            <div id="status" class="text-sm text-gray-400"></div>
+          </div>
         </div>
-    </header>
-
-    <!-- Mobile Search Modal -->
-    <div class="mobile-search-modal" id="mobileSearchModal">
-        <div class="mobile-search-container">
-            <form class="mobile-search-form" id="mobileSearchForm">
-                <button type="button" class="mobile-search-close" id="mobileSearchClose">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <input type="text" class="mobile-search-input" id="mobileSearchInput" placeholder="ค้นหาซีรี่ย์...">
-                <button type="submit" class="mobile-search-submit">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-        </div>
+      </div>
     </div>
+  </main>
 
-    <!-- Main Content -->
-    <main class="main-content" id="mainContent">
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-slider" id="heroSlider"></div>
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1 class="hero-title">ยินดีต้อนรับสู่ DramaPop</h1>
-                <p class="hero-subtitle">ดูซีรี่ย์ออนไลน์ฟรี คมชัด HD พากย์ไทย ซับไทย</p>
-            </div>
-        </div>
+  <div id="loading" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+    <div class="text-center">
+      <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-gray-400">Memuat...</p>
+    </div>
+  </div>
 
-        <!-- For You Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-heart"></i> <span data-i18n="sections.forYou">แนะนำสำหรับคุณ</span>
-                </h2>
-                <a href="category.html?type=foryou" class="see-all-btn">
-                    <span data-i18n="common.viewAll">ดูทั้งหมด</span> <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="forYouSlider" data-slider="forYou">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="forYouGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="forYou"></div>
-        </section>
+  <script>
+    const API = 'https://dramabos.asia/api/dramabox';
+    let hls = null, currentDrama = null, chapters = [];
+    const cache = new Map();
 
-        <!-- New Dramas Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-sparkles"></i> ซีรี่ย์มาใหม่
-                </h2>
-                <a href="category.html?type=new" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="newDramasSlider" data-slider="newDramas">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="newDramasGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="newDramas"></div>
-        </section>
+    function getLang() { return document.getElementById('langSelect').value; }
+    function showLoading() { document.getElementById('loading').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('loading').classList.add('hidden'); }
 
-        <!-- Ranking Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-trophy"></i> ยอดนิยม
-                </h2>
-                <a href="category.html?type=ranking" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="rankingSlider" data-slider="ranking">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="rankingGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="ranking"></div>
-        </section>
+    async function fetchCached(url, ttl = 300000) {
+      const now = Date.now();
+      // Include lang in cache key
+      const cacheKey = url + '_' + getLang();
+      if (cache.has(cacheKey) && now - cache.get(cacheKey).time < ttl) return cache.get(cacheKey).data;
+      const res = await fetch(url);
+      const data = await res.json();
+      cache.set(cacheKey, { data, time: now });
+      return data;
+    }
 
-        <!-- Classify Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-fire"></i> มาแรง
-                </h2>
-                <a href="category.html?type=classify" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="classifySlider" data-slider="classify">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="classifyGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="classify"></div>
-        </section>
+    function clearCache() {
+      cache.clear();
+    }
 
-        <!-- Romance Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-heart"></i> โรแมนติก
-                </h2>
-                <a href="category.html?type=romance" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="romanceSlider" data-slider="romance">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="romanceGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="romance"></div>
-        </section>
+    async function searchDrama() {
+      const q = document.getElementById('searchInput').value;
+      if (!q.trim()) return loadHome();
+      showLoading();
+      try {
+        // Dramabox search: /api/search/{query}/{page}?lang={lang}
+        const json = await fetchCached(`${API}/api/search/${encodeURIComponent(q)}/1?lang=${getLang()}`);
+        renderFeed(json.data?.list || [], `Hasil: "${q}"`);
+      } catch (e) { document.getElementById('feed').innerHTML = '<p class="text-red-500 p-4">Error: ' + e.message + '</p>'; }
+      hideLoading();
+    }
 
-        <!-- CEO Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-briefcase"></i> ท่านประธาน
-                </h2>
-                <a href="category.html?type=ceo" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="ceoSlider" data-slider="ceo">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="ceoGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="ceo"></div>
-        </section>
+    async function loadHome() {
+      showLoading();
+      try {
+        // Dramabox home: /api/foryou/{page}?lang={lang}
+        const json = await fetchCached(`${API}/api/foryou/1?lang=${getLang()}`);
+        renderFeed(json.data?.list || [], '🔥 Trending');
+      } catch (e) {
+        console.error(e);
+        document.getElementById('feed').innerHTML = '<p class="text-red-500 p-4">Error: ' + e.message + '</p>';
+      }
+      hideLoading();
+    }
 
-        <!-- Fantasy Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-wand-magic-sparkles"></i> แฟนตาซี
-                </h2>
-                <a href="category.html?type=fantasy" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
+    function renderFeed(items, title) {
+      document.querySelector('#feedSection h2').textContent = title;
+      if (!items?.length) { document.getElementById('feed').innerHTML = '<p class="text-gray-500 p-4">Tidak ada hasil</p>'; return; }
+      document.getElementById('feed').innerHTML = items.map(item => {
+        // Dramabox uses different field names
+        const img = item.coverWap || item.cover || '';
+        const bookId = item.bookId || item.id;
+        const bookTitle = item.bookName || item.name || item.title || '';
+        const category = item.tags?.[0] || item.typeTwoName || item.typeOneName || 'Drama';
+        return `
+        <div class="card cursor-pointer group" onclick="selectDrama('${bookId}')">
+          <div class="relative overflow-hidden rounded-xl mb-2">
+            <img src="${img}" class="card-img w-full aspect-[3/4] object-cover bg-gray-800" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+              <span class="text-xs bg-cyan-600 px-2 py-1 rounded">${category}</span>
             </div>
-            <div class="drama-slider" id="fantasySlider" data-slider="fantasy">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="fantasyGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="fantasy"></div>
-        </section>
+          </div>
+          <h3 class="font-medium text-sm leading-tight line-clamp-2 group-hover:text-cyan-400 transition-colors">${bookTitle}</h3>
+        </div>`;
+      }).join('');
+    }
 
-        <!-- Period Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-crown"></i> พีเรียด/ย้อนยุค
-                </h2>
-                <a href="category.html?type=period" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="periodSlider" data-slider="period">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="periodGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="period"></div>
-        </section>
+    async function selectDrama(bookId) {
+      document.getElementById('playerModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('status').textContent = 'Memuat...';
+      document.getElementById('dramaTitle').textContent = '';
 
-        <!-- Revenge Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-fist-raised"></i> แก้แค้น
-                </h2>
-                <a href="category.html?type=revenge" class="see-all-btn">
-                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-            <div class="drama-slider" id="revengeSlider" data-slider="revenge">
-                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
-                <div class="drama-grid" id="revengeGrid"></div>
-                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="slider-pagination" data-for="revenge"></div>
-        </section>
-    </main>
+      try {
+        // Dramabox detail: /api/drama/{bookId}?lang={lang} - contains chapterList with video URLs
+        const json = await fetchCached(`${API}/api/drama/${bookId}?lang=${getLang()}`);
+        const drama = json.data;
+        if (!drama) { document.getElementById('status').textContent = 'Drama tidak ditemukan'; return; }
 
-    <!-- Bottom Navigation (Mobile) -->
-    <nav class="bottom-nav" id="bottomNav">
-        <a href="index.html" class="bottom-nav-item active" data-page="home">
-            <i class="fas fa-home"></i>
-            <span data-i18n="nav.home">หน้าแรก</span>
-        </a>
-        <a href="category.html?type=new" class="bottom-nav-item" data-page="new">
-            <i class="fas fa-star"></i>
-            <span data-i18n="nav.new">มาใหม่</span>
-        </a>
-        <a href="category.html?type=ranking" class="bottom-nav-item" data-page="ranking">
-            <i class="fas fa-trophy"></i>
-            <span data-i18n="nav.popular">ยอดนิยม</span>
-        </a>
-        <a href="history.html" class="bottom-nav-item" data-page="history">
-            <i class="fas fa-history"></i>
-            <span data-i18n="nav.history">ประวัติ</span>
-        </a>
-    </nav>
+        currentDrama = { bookId, name: drama.bookName || drama.name || '' };
+        document.getElementById('dramaTitle').textContent = currentDrama.name;
+        document.getElementById('dramaInfo').textContent = `${drama.chapterCount || 0} Episode`;
 
-    <!-- Scripts -->
-    <script src="js/api.js"></script>
-    <script src="js/i18n.js"></script>
-    <script src="js/common.js"></script>
-    <script src="js/home.js"></script>
+        // Store chapters with video data from drama API
+        chapters = drama.chapterList || [];
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW registered:', reg.scope))
-                    .catch(err => console.log('SW registration failed:', err));
-            });
+        document.getElementById('episodeSelect').innerHTML = chapters.map((ch, idx) =>
+          `<option value="${idx}">${ch.chapterName || 'Episode ' + (ch.chapterIndex + 1)}</option>`
+        ).join('');
+
+        if (chapters.length) playEpisode();
+      } catch (e) { document.getElementById('status').textContent = 'Error: ' + e.message; }
+    }
+
+    async function playEpisode() {
+      if (!currentDrama || !chapters.length) return;
+      const index = parseInt(document.getElementById('episodeSelect').value);
+      const video = document.getElementById('videoPlayer');
+      const chapter = chapters[index];
+
+      if (!chapter) {
+        document.getElementById('status').textContent = 'Episode tidak ditemukan';
+        return;
+      }
+
+      document.getElementById('status').textContent = `Memuat ${chapter.chapterName || 'Episode ' + (index + 1)}...`;
+
+      try {
+        // Get video URL from chapter's cdnList -> videoPathList
+        // Prefer 720p as default, fallback to any available quality
+        let url = null;
+        if (chapter.cdnList && chapter.cdnList.length > 0) {
+          const cdn = chapter.cdnList.find(c => c.isDefault === 1) || chapter.cdnList[0];
+          if (cdn.videoPathList && cdn.videoPathList.length > 0) {
+            // Try to get 720p first (default), then any available
+            const video720 = cdn.videoPathList.find(v => v.quality === 720);
+            const videoDefault = cdn.videoPathList.find(v => v.isDefault === 1);
+            const videoAny = cdn.videoPathList[0];
+            url = (video720 || videoDefault || videoAny)?.videoPath;
+          }
         }
-    </script>
+
+        if (!url) {
+          document.getElementById('status').textContent = 'Video tidak tersedia';
+          return;
+        }
+
+        // Check if URL is HLS (.m3u8) or direct MP4
+        const isHls = url.includes('.m3u8');
+
+        if (hls) hls.destroy();
+
+        if (isHls && Hls.isSupported()) {
+          hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(() => { });
+            document.getElementById('status').textContent = chapter.chapterName || `Episode ${index + 1}`;
+          });
+          hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, setupSubtitles);
+          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) document.getElementById('status').textContent = 'Error: ' + d.details; });
+        } else {
+          // Direct MP4 playback
+          video.src = url;
+          video.play().catch(() => { });
+          document.getElementById('status').textContent = chapter.chapterName || `Episode ${index + 1}`;
+        }
+      } catch (e) { document.getElementById('status').textContent = 'Error: ' + e.message; }
+    }
+
+    function setupSubtitles() {
+      if (!hls?.subtitleTracks?.length) return;
+      const sel = document.getElementById('subtitleSelect');
+      sel.innerHTML = '<option value="-1">Subtitle: Off</option>' + hls.subtitleTracks.map((t, i) => `<option value="${i}">${t.name || t.lang}</option>`).join('');
+      const lang = getLang() === 'id' ? 'ind' : getLang();
+      const idx = hls.subtitleTracks.findIndex(t => t.lang?.includes(lang));
+      if (idx >= 0) { sel.value = idx; hls.subtitleTrack = idx; hls.subtitleDisplay = true; }
+    }
+
+    function changeSubtitle() {
+      if (!hls) return;
+      const i = parseInt(document.getElementById('subtitleSelect').value);
+      hls.subtitleTrack = i;
+      hls.subtitleDisplay = i >= 0;
+    }
+
+    function closePlayer() {
+      if (hls) { hls.destroy(); hls = null; }
+      document.getElementById('videoPlayer').src = '';
+      document.getElementById('playerModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      currentDrama = null;
+      chapters = [];
+    }
+
+    document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchDrama(); });
+    loadHome();
+  </script>
 </body>
 
 </html>
