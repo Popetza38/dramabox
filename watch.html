@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="ดูซีรี่ย์ออนไลน์ - DramaPop">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <title>กำลังดู - DramaPop</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DramaPop">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* Watch Page Styles */
+        .watch-page {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0a0a1a 0%, #0d0d20 100%);
+            padding-bottom: 100px;
+        }
+
+        /* Top Bar */
+        .watch-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .watch-back-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .watch-back-btn:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .watch-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .watch-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .watch-episode-text {
+            font-size: 12px;
+            color: var(--accent);
+            margin: 0;
+        }
+
+        /* Video Wrapper */
+        .video-wrapper {
+            width: 100%;
+            padding-top: 60px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+        }
+
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            display: block;
+        }
+
+        /* Video Loading */
+        .video-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .video-loading.hidden {
+            display: none;
+        }
+
+        .video-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 71, 87, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .video-loading span {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Video Controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 60px 16px 16px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-container:hover .video-controls,
+        .video-container.show-controls .video-controls {
+            opacity: 1;
+        }
+
+        /* Progress Bar */
+        .video-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: height 0.2s;
+        }
+
+        .video-progress:hover {
+            height: 8px;
+        }
+
+        .video-progress-current {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, #ff6b9d 100%);
+            border-radius: 2px;
+            width: 0;
+        }
+
+        /* Control Buttons */
+        .video-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            background: transparent;
+            flex-shrink: 0;
+        }
+
+        .video-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .video-btn.play-pause {
+            width: 48px;
+            height: 48px;
+            font-size: 18px;
+            background: var(--accent);
+        }
+
+        .video-btn.play-pause:hover {
+            background: #ff6b9d;
+            transform: scale(1.05);
+        }
+
+        .video-btn.speed-btn {
+            width: auto;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        .video-spacer {
+            flex: 1;
+        }
+
+        .volume-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .volume-slider {
+            width: 70px;
+            height: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-left: 4px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Episodes Section */
+        .episodes-section {
+            padding: 20px 16px;
+        }
+
+        .episodes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .episodes-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .episodes-title i {
+            color: var(--accent);
+        }
+
+        .episode-nav-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .episode-nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .episode-nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            color: white;
+            border-color: transparent;
+        }
+
+        .episode-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Episode List */
+        .episode-list {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 8px 0;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .episode-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .episode-btn {
+            flex: 0 0 auto;
+            min-width: 80px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .episode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 71, 87, 0.5);
+        }
+
+        .episode-btn.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6b9d 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .watch-top-bar {
+                height: 56px;
+                padding: 0 12px;
+            }
+
+            .watch-back-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .watch-title {
+                font-size: 14px;
+            }
+
+            .video-wrapper {
+                padding-top: 56px;
+            }
+
+            .video-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .video-btn.play-pause {
+                width: 44px;
+                height: 44px;
+            }
+
+            .volume-group {
+                display: none;
+            }
+
+            .episode-btn {
+                min-width: 70px;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .video-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 80px 20px 0;
+            }
+
+            .video-container {
+                border-radius: 16px;
+                overflow: hidden;
+            }
+
+            .episodes-section {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Bar -->
+    <div class="watch-top-bar">
+        <button class="watch-back-btn" id="watchBackBtn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="watch-info">
+            <h1 class="watch-title" id="watchTitle">กำลังโหลด...</h1>
+            <p class="watch-episode-text" id="currentEpisode">ตอนที่ 1</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="watch-page">
+        <!-- Video Wrapper -->
+        <div class="video-wrapper">
+            <div class="video-container" id="videoContainer">
+                <video id="videoPlayer" class="video-player" playsinline></video>
+
+                <!-- Loading -->
+                <div class="video-loading" id="videoLoading">
+                    <div class="video-loading-spinner"></div>
+                    <span>กำลังโหลดวิดีโอ...</span>
+                </div>
+
+                <!-- Controls -->
+                <div class="video-controls" id="videoControls">
+                    <div class="video-progress" id="progressBar">
+                        <div class="video-progress-current" id="progressCurrent"></div>
+                    </div>
+                    <div class="video-buttons">
+                        <button class="video-btn" id="skipBackBtn" title="ย้อนกลับ 10 วินาที">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button class="video-btn play-pause" id="playPauseBtn" title="เล่น/หยุด">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="video-btn" id="skipForwardBtn" title="ข้ามไป 10 วินาที">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                        <div class="video-time">
+                            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                        </div>
+                        <div class="video-spacer"></div>
+                        <button class="video-btn speed-btn" id="speedBtn" title="ความเร็ว">1x</button>
+                        <div class="volume-group">
+                            <button class="video-btn" id="muteBtn" title="ปิด/เปิดเสียง">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1"
+                                value="1">
+                        </div>
+                        <button class="video-btn" id="fullscreenBtn" title="เต็มจอ">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Episodes Section -->
+        <section class="episodes-section">
+            <div class="episodes-header">
+                <h3 class="episodes-title">
+                    <i class="fas fa-list"></i> <span data-i18n="player.selectEpisode">เลือกตอน</span>
+                </h3>
+                <div class="episode-nav-btns">
+                    <button class="episode-nav-btn" id="prevEpisodeBtn" disabled>
+                        <i class="fas fa-chevron-left"></i> <span data-i18n="player.prevEpisode">ก่อนหน้า</span>
+                    </button>
+                    <button class="episode-nav-btn" id="nextEpisodeBtn">
+                        <span data-i18n="player.nextEpisode">ถัดไป</span> <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="episode-list" id="episodeList"></div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottomNav">
+        <a href="index.html" class="bottom-nav-item" data-page="home">
+            <i class="fas fa-home"></i>
+            <span data-i18n="nav.home">หน้าแรก</span>
+        </a>
+        <a href="category.html?type=new" class="bottom-nav-item" data-page="new">
+            <i class="fas fa-star"></i>
+            <span data-i18n="nav.new">มาใหม่</span>
+        </a>
+        <a href="category.html?type=ranking" class="bottom-nav-item" data-page="ranking">
+            <i class="fas fa-trophy"></i>
+            <span data-i18n="nav.popular">ยอดนิยม</span>
+        </a>
+        <a href="history.html" class="bottom-nav-item" data-page="history">
+            <i class="fas fa-history"></i>
+            <span data-i18n="nav.history">ประวัติ</span>
+        </a>
+    </nav>
+
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/watch.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>

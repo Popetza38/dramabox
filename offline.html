@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a1a">
+    <title>ไม่มีการเชื่อมต่อ - DramaPop</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Niramit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a1a;
+            background-image:
+                radial-gradient(ellipse at top, rgba(100, 50, 150, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(255, 71, 87, 0.1) 0%, transparent 50%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .offline-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 30%, #ff4757 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .offline-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b9d 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.35);
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.45);
+        }
+
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+
+        .history-link {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            text-decoration: none;
+            padding: 12px;
+            transition: color 0.3s;
+        }
+
+        .history-link:hover {
+            color: #ff4757;
+        }
+
+        .offline-tips {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tips-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+        }
+
+        .tips-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .tips-list li {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-list li::before {
+            content: '•';
+            color: #ff4757;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1 class="offline-title" data-i18n="offline.title">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</h1>
+        <p class="offline-subtitle" data-i18n="offline.subtitle">
+            ดูเหมือนว่าคุณออฟไลน์อยู่ กรุณาตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง
+        </p>
+
+        <div class="offline-actions">
+            <button class="retry-btn" onclick="location.reload()">
+                <span>🔄</span>
+                <span data-i18n="offline.retry">ลองอีกครั้ง</span>
+            </button>
+            <a href="history.html" class="history-link" data-i18n="offline.viewHistory">
+                ดูประวัติการรับชม (Offline)
+            </a>
+        </div>
+
+        <div class="offline-tips">
+            <div class="tips-title" data-i18n="offline.tipsTitle">💡 เคล็ดลับ</div>
+            <ul class="tips-list">
+                <li data-i18n="offline.tip1">ตรวจสอบว่า WiFi หรือข้อมูลมือถือเปิดอยู่</li>
+                <li data-i18n="offline.tip2">ลองเปิด-ปิดโหมดเครื่องบิน</li>
+                <li data-i18n="offline.tip3">เนื้อหาที่ดูแล้วอาจยังใช้งานได้จาก Cache</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Auto-retry when back online
+        window.addEventListener('online', () => {
+            location.reload();
+        });
+    </script>
+</body>
+
+</html>

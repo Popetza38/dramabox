@@ -1,0 +1,12 @@
+{
+  "name": "dramaverse",
+  "version": "1.0.0",
+  "description": "DramaPop - เว็บดูซีรี่ย์ออนไลน์ฟรี",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
