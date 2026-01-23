@@ -83,6 +83,10 @@
             <div class="flex items-center gap-3 mb-4">
               <select id="episodeSelect" onchange="playEpisode()"
                 class="flex-1 px-4 py-2 bg-gray-800 rounded-lg border border-gray-700"></select>
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="autoPlayNext" checked class="w-4 h-4 accent-cyan-500">
+                <span class="text-sm text-gray-300">Auto Next</span>
+              </label>
             </div>
             <div id="status" class="text-sm text-gray-400"></div>
           </div>
@@ -250,7 +254,28 @@
           video.play().catch(() => { });
           document.getElementById('status').textContent = chapter.chapterName || `Episode ${index + 1}`;
         }
+
+        // Add ended event listener for auto-play next
+        video.onended = () => {
+          if (document.getElementById('autoPlayNext').checked) {
+            playNextEpisode();
+          }
+        };
       } catch (e) { document.getElementById('status').textContent = 'Error: ' + e.message; }
+    }
+
+    function playNextEpisode() {
+      const select = document.getElementById('episodeSelect');
+      const currentIndex = parseInt(select.value);
+      const nextIndex = currentIndex + 1;
+
+      if (nextIndex < chapters.length) {
+        select.value = nextIndex;
+        playEpisode();
+        document.getElementById('status').textContent = 'กำลังเล่นตอนถัดไป...';
+      } else {
+        document.getElementById('status').textContent = '🎉 ดูจบทุกตอนแล้ว!';
+      }
     }
 
     function setupSubtitles() {
