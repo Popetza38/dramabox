@@ -294,10 +294,28 @@ const WatchPage = {
 
         fullscreen?.addEventListener('click', () => {
             const container = document.getElementById('videoContainer');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
+
+            // iOS Safari: ใช้ webkitEnterFullscreen บน video element โดยตรง
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            if (isIOS && video.webkitEnterFullscreen) {
+                // iOS ต้องใช้ video.webkitEnterFullscreen() โดยตรง
+                video.webkitEnterFullscreen();
+            } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+                // ออกจาก fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
             } else {
-                container.requestFullscreen();
+                // เข้า fullscreen
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
             }
         });
 
