@@ -1,6 +1,6 @@
 /**
  * DramaPop Watch Page JavaScript
- * Premium Theater Mode with SPA-style episode switching
+ * Premium Theater Mode with iOS-optimized video player
  */
 
 const WatchPage = {
@@ -11,13 +11,44 @@ const WatchPage = {
         hls: null,
         dramaData: null,
         isFullscreen: false,
-        isFavorite: false
+        isFavorite: false,
+        controlsTimeout: null,
+        isIOS: false
     },
+
+    // ========================================
+    // iOS Detection Utilities
+    // ========================================
+
+    isIOSDevice() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    },
+
+    getIOSVersion() {
+        const match = navigator.userAgent.match(/OS (\d+)_(\d+)/);
+        return match ? parseFloat(`${match[1]}.${match[2]}`) : 0;
+    },
+
+    isSafari() {
+        return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    },
+
+    // ========================================
+    // Initialization
+    // ========================================
 
     async init() {
         Common.init();
         this.state.bookId = Common.getUrlParam('id');
         this.state.currentEpisode = parseInt(Common.getUrlParam('ep')) || 1;
+        this.state.isIOS = this.isIOSDevice();
+
+        console.log('[WatchPage] Initializing...', {
+            isIOS: this.state.isIOS,
+            iOSVersion: this.getIOSVersion(),
+            isSafari: this.isSafari()
+        });
 
         if (!this.state.bookId) {
             Common.showError('ไม่พบข้อมูลซีรี่ย์');
@@ -45,10 +76,15 @@ const WatchPage = {
         // Video controls
         this.initVideoPlayer();
 
+        // Big play button for iOS
+        this.initPlayOverlay();
+
+        // Touch controls for mobile
+        this.initTouchControls();
+
         // Track fullscreen changes
-        document.addEventListener('fullscreenchange', () => {
-            this.state.isFullscreen = !!document.fullscreenElement;
-        });
+        document.addEventListener('fullscreenchange', () => this.handleFullscreenChange());
+        document.addEventListener('webkitfullscreenchange', () => this.handleFullscreenChange());
 
         // Show top bar on mouse movement
         let hideTimeout;
@@ -60,6 +96,178 @@ const WatchPage = {
             }, 3000);
         });
     },
+
+    // ========================================
+    // Play Overlay (iOS tap-to-play)
+    // ========================================
+
+    initPlayOverlay() {
+        const overlay = document.getElementById('playOverlay');
+        const bigPlayBtn = document.getElementById('bigPlayBtn');
+        const video = document.getElementById('videoPlayer');
+
+        if (!overlay || !bigPlayBtn || !video) return;
+
+        const startPlayback = async () => {
+            try {
+                // Show loading
+                document.getElementById('videoLoading')?.classList.remove('hidden');
+
+                await video.play();
+                overlay.classList.add('hidden');
+                console.log('[PlayOverlay] Playback started successfully');
+            } catch (err) {
+                console.log('[PlayOverlay] Play failed:', err);
+                // Keep overlay visible for retry
+                document.getElementById('videoLoading')?.classList.add('hidden');
+            }
+        };
+
+        bigPlayBtn.addEventListener('click', startPlayback);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                startPlayback();
+            }
+        });
+
+        // Listen for video events to manage overlay
+        video.addEventListener('play', () => {
+            overlay.classList.add('hidden');
+        });
+
+        video.addEventListener('pause', () => {
+            // Don't show overlay on pause - use controls instead
+        });
+
+        video.addEventListener('ended', () => {
+            overlay.classList.remove('hidden');
+        });
+    },
+
+    // ========================================
+    // Touch Controls for Mobile
+    // ========================================
+
+    initTouchControls() {
+        const container = document.getElementById('videoContainer');
+        const video = document.getElementById('videoPlayer');
+
+        if (!container || !video) return;
+
+        let lastTap = 0;
+        let tapTimeout = null;
+
+        container.addEventListener('touchstart', (e) => {
+            container.classList.add('touching');
+        });
+
+        container.addEventListener('touchend', (e) => {
+            container.classList.remove('touching');
+
+            // Ignore if touching controls
+            if (e.target.closest('.video-controls') ||
+                e.target.closest('.video-play-overlay')) {
+                return;
+            }
+
+            const now = Date.now();
+            const tapLength = now - lastTap;
+
+            if (tapTimeout) clearTimeout(tapTimeout);
+
+            if (tapLength < 300 && tapLength > 0) {
+                // Double tap detected
+                const rect = container.getBoundingClientRect();
+                const tapX = e.changedTouches[0].clientX - rect.left;
+                const width = rect.width;
+
+                if (tapX < width * 0.3) {
+                    // Left side - rewind 10s
+                    video.currentTime = Math.max(0, video.currentTime - 10);
+                    this.showSkipFeedback('backward');
+                } else if (tapX > width * 0.7) {
+                    // Right side - forward 10s
+                    video.currentTime = Math.min(video.duration, video.currentTime + 10);
+                    this.showSkipFeedback('forward');
+                } else {
+                    // Center - toggle fullscreen
+                    this.toggleFullscreen();
+                }
+                e.preventDefault();
+            } else {
+                // Single tap - toggle controls
+                tapTimeout = setTimeout(() => {
+                    this.toggleControls();
+                }, 300);
+            }
+
+            lastTap = now;
+        });
+    },
+
+    showSkipFeedback(direction) {
+        // Could add visual feedback here
+        console.log(`[Touch] Skip ${direction}`);
+    },
+
+    toggleControls() {
+        const container = document.getElementById('videoContainer');
+        container?.classList.toggle('show-controls');
+
+        // Auto-hide after 3 seconds
+        clearTimeout(this.state.controlsTimeout);
+        this.state.controlsTimeout = setTimeout(() => {
+            container?.classList.remove('show-controls');
+        }, 3000);
+    },
+
+    // ========================================
+    // Fullscreen Handling (iOS Compatible)
+    // ========================================
+
+    handleFullscreenChange() {
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        this.state.isFullscreen = isFs;
+
+        const btn = document.getElementById('fullscreenBtn');
+        if (btn) {
+            btn.innerHTML = isFs ?
+                '<i class="fas fa-compress"></i>' :
+                '<i class="fas fa-expand"></i>';
+        }
+    },
+
+    toggleFullscreen() {
+        const container = document.getElementById('videoContainer');
+        const video = document.getElementById('videoPlayer');
+
+        if (this.state.isIOS) {
+            // iOS: Use webkitEnterFullscreen on video element
+            if (video.webkitEnterFullscreen) {
+                video.webkitEnterFullscreen();
+            } else if (video.webkitRequestFullscreen) {
+                video.webkitRequestFullscreen();
+            }
+        } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        } else {
+            // Enter fullscreen
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            }
+        }
+    },
+
+    // ========================================
+    // Share & Favorites
+    // ========================================
 
     async shareContent() {
         const url = window.location.href;
@@ -123,6 +331,10 @@ const WatchPage = {
             color: '#fff'
         });
     },
+
+    // ========================================
+    // Load Drama & Video
+    // ========================================
 
     async loadDrama() {
         document.getElementById('videoLoading')?.classList.remove('hidden');
@@ -206,9 +418,14 @@ const WatchPage = {
         }
     },
 
+    // ========================================
+    // Video Loading (iOS HLS Compatible)
+    // ========================================
+
     loadVideo(url) {
         const video = document.getElementById('videoPlayer');
         const loading = document.getElementById('videoLoading');
+        const overlay = document.getElementById('playOverlay');
 
         // Destroy existing HLS instance if any
         if (this.state.hls) {
@@ -216,21 +433,67 @@ const WatchPage = {
             this.state.hls = null;
         }
 
-        // Remove any existing error listeners
+        // Reset video state
+        video.removeAttribute('src');
+        video.load();
         video.onerror = null;
 
         // Detect if URL is HLS (.m3u8) or MP4
         const isHLS = url.toLowerCase().includes('.m3u8') ||
             url.toLowerCase().includes('m3u8') ||
-            url.includes('playlist') && !url.includes('.mp4');
-        const isMP4 = url.toLowerCase().includes('.mp4') ||
-            url.toLowerCase().endsWith('.mp4');
+            (url.includes('playlist') && !url.includes('.mp4'));
+        const isMP4 = url.toLowerCase().includes('.mp4');
 
         console.log('[VideoPlayer] Loading:', url);
-        console.log('[VideoPlayer] IsHLS:', isHLS, 'IsMP4:', isMP4);
+        console.log('[VideoPlayer] IsHLS:', isHLS, 'IsMP4:', isMP4, 'IsIOS:', this.state.isIOS);
 
-        if (isHLS && Hls.isSupported()) {
-            // ===== HLS.js for .m3u8 streams =====
+        // ===== iOS: Always use native HLS support =====
+        if (this.state.isIOS || (isHLS && video.canPlayType('application/vnd.apple.mpegurl'))) {
+            console.log('[VideoPlayer] Using native HLS support (iOS/Safari)');
+
+            video.src = url;
+
+            const onCanPlay = () => {
+                console.log('[VideoPlayer] Native HLS ready to play');
+                loading?.classList.add('hidden');
+
+                // On iOS, show play overlay instead of auto-playing
+                if (this.state.isIOS) {
+                    overlay?.classList.remove('hidden');
+                } else {
+                    video.play().catch(e => {
+                        console.log('[VideoPlayer] Autoplay blocked:', e);
+                        overlay?.classList.remove('hidden');
+                    });
+                }
+            };
+
+            const onError = (e) => {
+                console.error('[VideoPlayer] Native HLS error:', video.error);
+                loading?.classList.add('hidden');
+                overlay?.classList.remove('hidden');
+
+                // Show user-friendly error
+                const errorCode = video.error?.code;
+                if (errorCode === 2) {
+                    Common.showError('เกิดข้อผิดพลาดเครือข่าย กรุณาลองใหม่');
+                } else if (errorCode === 3) {
+                    Common.showError('รูปแบบวิดีโอไม่รองรับ');
+                } else if (errorCode === 4) {
+                    Common.showError('ไม่พบไฟล์วิดีโอ');
+                } else {
+                    Common.showError('ไม่สามารถโหลดวิดีโอได้');
+                }
+            };
+
+            video.addEventListener('canplay', onCanPlay, { once: true });
+            video.addEventListener('loadedmetadata', () => {
+                console.log('[VideoPlayer] Metadata loaded, duration:', video.duration);
+            }, { once: true });
+            video.addEventListener('error', onError, { once: true });
+
+            // ===== Desktop: Use HLS.js for .m3u8 streams =====
+        } else if (isHLS && typeof Hls !== 'undefined' && Hls.isSupported()) {
             console.log('[VideoPlayer] Using HLS.js for HLS stream');
 
             this.state.hls = new Hls({
@@ -244,9 +507,12 @@ const WatchPage = {
             this.state.hls.attachMedia(video);
 
             this.state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                console.log('[VideoPlayer] HLS Manifest parsed, starting playback');
-                video.play().catch(e => console.log('[VideoPlayer] Autoplay blocked:', e));
+                console.log('[VideoPlayer] HLS Manifest parsed');
                 loading?.classList.add('hidden');
+                video.play().catch(e => {
+                    console.log('[VideoPlayer] Autoplay blocked:', e);
+                    overlay?.classList.remove('hidden');
+                });
             });
 
             this.state.hls.on(Hls.Events.ERROR, (event, data) => {
@@ -264,59 +530,46 @@ const WatchPage = {
                         default:
                             console.error('[VideoPlayer] Fatal error, cannot recover');
                             loading?.classList.add('hidden');
+                            overlay?.classList.remove('hidden');
                             Common.showError('ไม่สามารถโหลดวิดีโอได้');
                             break;
                     }
                 }
             });
 
-        } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
-            // ===== Native HLS support (Safari/iOS) =====
-            console.log('[VideoPlayer] Using native HLS support');
-            video.src = url;
-
-            video.addEventListener('loadedmetadata', () => {
-                console.log('[VideoPlayer] Native HLS loaded');
-                video.play().catch(e => console.log('[VideoPlayer] Autoplay blocked:', e));
-                loading?.classList.add('hidden');
-            }, { once: true });
-
-            video.onerror = () => {
-                console.error('[VideoPlayer] Native HLS error');
-                loading?.classList.add('hidden');
-                Common.showError('ไม่สามารถโหลดวิดีโอได้');
-            };
-
-        } else {
             // ===== HTML5 Native for MP4 =====
+        } else {
             console.log('[VideoPlayer] Using HTML5 Native for MP4');
             video.src = url;
 
-            video.addEventListener('loadeddata', () => {
-                console.log('[VideoPlayer] MP4 loaded successfully');
-                video.play().catch(e => console.log('[VideoPlayer] Autoplay blocked:', e));
-                loading?.classList.add('hidden');
-            }, { once: true });
-
             video.addEventListener('canplay', () => {
-                console.log('[VideoPlayer] MP4 can play');
+                console.log('[VideoPlayer] MP4 ready to play');
                 loading?.classList.add('hidden');
+                video.play().catch(e => {
+                    console.log('[VideoPlayer] Autoplay blocked:', e);
+                    overlay?.classList.remove('hidden');
+                });
             }, { once: true });
 
-            video.onerror = (e) => {
-                console.error('[VideoPlayer] MP4 error:', e);
+            video.onerror = () => {
+                console.error('[VideoPlayer] MP4 error:', video.error);
                 loading?.classList.add('hidden');
+                overlay?.classList.remove('hidden');
                 Common.showError('ไม่สามารถโหลดวิดีโอได้');
             };
         }
     },
 
-    // Switch episode without page reload (SPA-style)
+    // ========================================
+    // Episode Switching (SPA-style)
+    // ========================================
+
     async switchEpisode(ep) {
         if (ep < 1 || ep > this.state.chapters.length) return;
 
         // Show loading
         document.getElementById('videoLoading')?.classList.remove('hidden');
+        document.getElementById('playOverlay')?.classList.add('hidden');
 
         // Update state
         this.state.currentEpisode = ep;
@@ -394,21 +647,28 @@ const WatchPage = {
         const next = document.getElementById('nextEpisodeBtn');
         const total = this.state.chapters.length;
 
-        prev.disabled = this.state.currentEpisode <= 1;
-        next.disabled = this.state.currentEpisode >= total;
+        if (prev) {
+            prev.disabled = this.state.currentEpisode <= 1;
+            prev.onclick = () => {
+                if (this.state.currentEpisode > 1) {
+                    this.switchEpisode(this.state.currentEpisode - 1);
+                }
+            };
+        }
 
-        prev.onclick = () => {
-            if (this.state.currentEpisode > 1) {
-                this.switchEpisode(this.state.currentEpisode - 1);
-            }
-        };
-
-        next.onclick = () => {
-            if (this.state.currentEpisode < total) {
-                this.switchEpisode(this.state.currentEpisode + 1);
-            }
-        };
+        if (next) {
+            next.disabled = this.state.currentEpisode >= total;
+            next.onclick = () => {
+                if (this.state.currentEpisode < total) {
+                    this.switchEpisode(this.state.currentEpisode + 1);
+                }
+            };
+        }
     },
+
+    // ========================================
+    // Video Player Controls
+    // ========================================
 
     initVideoPlayer() {
         const video = document.getElementById('videoPlayer');
@@ -463,6 +723,7 @@ const WatchPage = {
 
         video?.addEventListener('play', () => {
             if (playPause) playPause.innerHTML = '<i class="fas fa-pause"></i>';
+            document.getElementById('playOverlay')?.classList.add('hidden');
         });
 
         video?.addEventListener('pause', () => {
@@ -471,6 +732,7 @@ const WatchPage = {
 
         // แสดงข้อความเมื่อวิดีโอจบ
         video?.addEventListener('ended', () => {
+            document.getElementById('playOverlay')?.classList.remove('hidden');
             if (this.state.currentEpisode >= this.state.chapters.length) {
                 this.updatePlayerStatus('🎉 ดูจบทุกตอนแล้ว!', 'success');
             } else {
@@ -484,31 +746,9 @@ const WatchPage = {
             video.currentTime = pos * video.duration;
         });
 
+        // Fullscreen button
         fullscreen?.addEventListener('click', () => {
-            const container = document.getElementById('videoContainer');
-
-            // iOS Safari: ใช้ webkitEnterFullscreen บน video element โดยตรง
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-            if (isIOS && video.webkitEnterFullscreen) {
-                // iOS ต้องใช้ video.webkitEnterFullscreen() โดยตรง
-                video.webkitEnterFullscreen();
-            } else if (document.fullscreenElement || document.webkitFullscreenElement) {
-                // ออกจาก fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-            } else {
-                // เข้า fullscreen
-                if (container.requestFullscreen) {
-                    container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) {
-                    container.webkitRequestFullscreen();
-                }
-            }
+            this.toggleFullscreen();
         });
 
         volume?.addEventListener('input', (e) => {

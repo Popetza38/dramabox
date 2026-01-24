@@ -735,6 +735,85 @@
         .video-container:fullscreen .video-controls {
             padding: 100px 40px 40px;
         }
+
+        /* ========================================
+           iOS Video Fixes & Play Overlay
+           ======================================== */
+
+        /* iOS Hardware Acceleration */
+        .video-player {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        /* Big Play Overlay */
+        .video-play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 15;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .big-play-btn {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6b9d 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            box-shadow: 0 8px 40px rgba(255, 71, 87, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-left: 6px;
+            /* Center play icon visually */
+        }
+
+        .big-play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 50px rgba(255, 71, 87, 0.6);
+        }
+
+        .big-play-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* iOS Fullscreen Fixes */
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+
+        video::-webkit-media-controls-enclosure {
+            display: none !important;
+        }
+
+        /* Touch feedback for video container */
+        .video-container.touching .video-controls {
+            opacity: 1;
+        }
+
+        @media (max-width: 640px) {
+            .big-play-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+        }
     </style>
 </head>
 
@@ -755,7 +834,15 @@
         <!-- Video Wrapper -->
         <div class="video-wrapper">
             <div class="video-container" id="videoContainer">
-                <video id="videoPlayer" class="video-player" playsinline></video>
+                <video id="videoPlayer" class="video-player" playsinline webkit-playsinline x-webkit-airplay="allow"
+                    preload="metadata"></video>
+
+                <!-- Big Play Overlay for iOS/Mobile -->
+                <div class="video-play-overlay" id="playOverlay">
+                    <button class="big-play-btn" id="bigPlayBtn" aria-label="เล่นวิดีโอ">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
 
                 <!-- Loading -->
                 <div class="video-loading" id="videoLoading">
