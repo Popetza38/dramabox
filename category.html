@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="ประวัติการดู - DramaPop">
+    <meta name="description" content="หมวดหมู่ซีรี่ย์ - DramaPop">
     <meta name="theme-color" content="#0a0a1a">
 
-    <title>ประวัติการดู - DramaPop</title>
+    <title>หมวดหมู่ - DramaPop</title>
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -68,7 +68,7 @@
                 <a href="index.html" class="nav-link" data-page="home">
                     <i class="fas fa-home"></i> หน้าแรก
                 </a>
-                <a href="history.html" class="nav-link active" data-page="history">
+                <a href="history.html" class="nav-link" data-page="history">
                     <i class="fas fa-history"></i> ประวัติ
                 </a>
             </nav>
@@ -95,16 +95,17 @@
     </div>
 
     <!-- Main Content -->
-    <main class="history-page">
-        <div class="history-header">
-            <h1 class="history-title">
-                <i class="fas fa-history"></i> <span data-i18n="history.title">ประวัติการดู</span>
-            </h1>
-            <button class="clear-all-btn" id="clearAllHistory" style="display: none;">
-                <i class="fas fa-trash"></i> <span data-i18n="history.clearHistory">ลบทั้งหมด</span>
+    <main class="category-page">
+        <div class="category-header">
+            <button class="category-back-btn" id="categoryBackBtn">
+                <i class="fas fa-arrow-left"></i>
             </button>
+            <h1 class="category-title" id="categoryTitle">หมวดหมู่</h1>
         </div>
-        <div class="history-list" id="historyResults"></div>
+        <div class="category-grid" id="categoryResults"></div>
+        <button class="load-more-btn" id="categoryLoadMore">
+            โหลดเพิ่มเติม <i class="fas fa-chevron-down"></i>
+        </button>
     </main>
 
     <!-- Bottom Navigation -->
@@ -121,7 +122,7 @@
             <i class="fas fa-trophy"></i>
             <span data-i18n="nav.popular">ยอดนิยม</span>
         </a>
-        <a href="history.html" class="bottom-nav-item active" data-page="history">
+        <a href="history.html" class="bottom-nav-item" data-page="history">
             <i class="fas fa-history"></i>
             <span data-i18n="nav.history">ประวัติ</span>
         </a>
@@ -130,7 +131,7 @@
     <script src="js/api.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/common.js"></script>
-    <script src="js/history.js"></script>
+    <script src="js/category.js"></script>
 
     <!-- Service Worker Registration -->
     <script>

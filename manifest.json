@@ -1,0 +1,82 @@
+{
+    "name": "DramaPop - ดูซีรี่ย์ออนไลน์ฟรี",
+    "short_name": "DramaPop",
+    "description": "ดูซีรี่ย์ออนไลน์ฟรี คมชัด HD พากย์ไทย ซับไทย",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#0a0a1a",
+    "theme_color": "#ff4757",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "th",
+    "icons": [
+        {
+            "src": "icons/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "หน้าแรก",
+            "short_name": "หน้าแรก",
+            "description": "ไปยังหน้าแรก",
+            "url": "/index.html",
+            "icons": [
+                {
+                    "src": "icons/icon-192.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "ซีรี่ย์มาใหม่",
+            "short_name": "มาใหม่",
+            "description": "ดูซีรี่ย์มาใหม่",
+            "url": "/category.html?type=new",
+            "icons": [
+                {
+                    "src": "icons/icon-192.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "ยอดนิยม",
+            "short_name": "ยอดนิยม",
+            "description": "ดูซีรี่ย์ยอดนิยม",
+            "url": "/category.html?type=ranking",
+            "icons": [
+                {
+                    "src": "icons/icon-192.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "ประวัติการดู",
+            "short_name": "ประวัติ",
+            "description": "ดูประวัติการรับชม",
+            "url": "/history.html",
+            "icons": [
+                {
+                    "src": "icons/icon-192.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "categories": [
+        "entertainment",
+        "video"
+    ],
+    "screenshots": [],
+    "prefer_related_applications": false
+}

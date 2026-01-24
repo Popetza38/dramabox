@@ -2,90 +2,362 @@
 <html lang="th">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0a0a">
-  <meta name="description" content="DramaBox - ดูซีรี่ย์ออนไลน์ฟรี คุณภาพสูง">
-  <title>DramaBox - ดูซีรี่ย์ออนไลน์</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="ดูซีรี่ย์ออนไลน์ฟรี ซีรี่ย์จีน ซีรี่ย์เกาหลี ซีรี่ย์ไทย พากย์ไทย ซับไทย คมชัด HD">
+    <meta name="keywords" content="ดูซีรี่ย์, ซีรี่ย์จีน, ซีรี่ย์เกาหลี, ซีรี่ย์ออนไลน์, พากย์ไทย, ซับไทย, Dramabox">
+    <meta name="author" content="DramaPop">
+    <meta name="theme-color" content="#1a1a2e">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <title>DramaPop - ดูซีรี่ย์ออนไลน์ฟรี</title>
 
-  <!-- Fonts & Libraries -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DramaPop">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
 
-  <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+
+    <!-- Google Fonts - Niramit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Niramit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="header" id="header">
-    <div class="header-container">
-      <a href="/" class="logo">🎬 Drama<span>Box</span></a>
-
-      <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="searchPlaceholder"
-          placeholder="ค้นหาซีรี่ย์...">
-        <button class="search-btn" onclick="performSearch()">🔍</button>
-      </div>
-
-      <select id="langSelect" class="lang-selector">
-        <option value="th">🇹🇭 ไทย</option>
-        <option value="en">🇺🇸 English</option>
-      </select>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-logo">
+                <i class="fas fa-film"></i>
+                <span>DramaPop</span>
+            </div>
+            <div class="loader-spinner">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+            </div>
+            <span class="loader-text">
+                กำลังโหลด
+                <span class="loader-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </span>
+        </div>
     </div>
-  </header>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <div id="contentContainer" class="container"></div>
-  </main>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-film logo-icon"></i>
+                <span class="logo-text">DramaPop</span>
+            </a>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="/" class="nav-item active">
-      <span class="icon">🏠</span>
-      <span class="label" data-i18n="home">หน้าหลัก</span>
-    </a>
-    <a href="#" class="nav-item" onclick="focusSearch()">
-      <span class="icon">🔍</span>
-      <span class="label" data-i18n="search">ค้นหา</span>
-    </a>
-    <a href="history" class="nav-item">
-      <span class="icon">📜</span>
-      <span class="label" data-i18n="history">ประวัติ</span>
-    </a>
-    <a href="#" class="nav-item">
-      <span class="icon">👤</span>
-      <span class="label" data-i18n="profile">โปรไฟล์</span>
-    </a>
-  </nav>
+            <div class="search-container">
+                <form class="search-form" id="searchForm">
+                    <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาซีรี่ย์...">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
 
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay hidden">
-    <div class="spinner"></div>
-    <p class="loading-text" data-i18n="loading">กำลังโหลด...</p>
-  </div>
+            <nav class="nav-desktop">
+                <a href="index.html" class="nav-link active" data-page="home">
+                    <i class="fas fa-home"></i> <span data-i18n="nav.home">หน้าแรก</span>
+                </a>
+                <a href="category.html?type=new" class="nav-link" data-page="new">
+                    <i class="fas fa-star"></i> <span data-i18n="nav.new">มาใหม่</span>
+                </a>
+                <a href="category.html?type=ranking" class="nav-link" data-page="ranking">
+                    <i class="fas fa-trophy"></i> <span data-i18n="nav.popular">ยอดนิยม</span>
+                </a>
+                <a href="history.html" class="nav-link" data-page="history">
+                    <i class="fas fa-history"></i> <span data-i18n="nav.history">ประวัติ</span>
+                </a>
+            </nav>
 
-  <!-- Scripts -->
-  <script src="js/i18n.js"></script>
-  <script src="js/history.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
+            <!-- Language Selector -->
+            <div class="language-selector" id="languageSelector">
+                <button class="language-btn" id="languageBtn">
+                    <span class="flag-icon">🇹🇭</span>
+                    <span class="lang-text">ไทย</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="language-dropdown" id="languageDropdown">
+                    <div class="language-option active" data-lang="th">
+                        <span class="flag-icon">🇹🇭</span>
+                        <span>ไทย</span>
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="language-option" data-lang="en">
+                        <span class="flag-icon">🇺🇸</span>
+                        <span>English</span>
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="language-option" data-lang="zh">
+                        <span class="flag-icon">🇨🇳</span>
+                        <span>中文</span>
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="language-option" data-lang="ko">
+                        <span class="flag-icon">🇰🇷</span>
+                        <span>한국어</span>
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
 
-  <script>
-    function focusSearch() {
-      const input = document.getElementById('searchInput');
-      input.focus();
-      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  </script>
+            <button class="mobile-search-btn" id="mobileSearchBtn">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Search Modal -->
+    <div class="mobile-search-modal" id="mobileSearchModal">
+        <div class="mobile-search-container">
+            <form class="mobile-search-form" id="mobileSearchForm">
+                <button type="button" class="mobile-search-close" id="mobileSearchClose">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <input type="text" class="mobile-search-input" id="mobileSearchInput" placeholder="ค้นหาซีรี่ย์...">
+                <button type="submit" class="mobile-search-submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-slider" id="heroSlider"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">ยินดีต้อนรับสู่ DramaPop</h1>
+                <p class="hero-subtitle">ดูซีรี่ย์ออนไลน์ฟรี คมชัด HD พากย์ไทย ซับไทย</p>
+            </div>
+        </div>
+
+        <!-- For You Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-heart"></i> <span data-i18n="sections.forYou">แนะนำสำหรับคุณ</span>
+                </h2>
+                <a href="category.html?type=foryou" class="see-all-btn">
+                    <span data-i18n="common.viewAll">ดูทั้งหมด</span> <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="forYouSlider" data-slider="forYou">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="forYouGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="forYou"></div>
+        </section>
+
+        <!-- New Dramas Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-sparkles"></i> ซีรี่ย์มาใหม่
+                </h2>
+                <a href="category.html?type=new" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="newDramasSlider" data-slider="newDramas">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="newDramasGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="newDramas"></div>
+        </section>
+
+        <!-- Ranking Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-trophy"></i> ยอดนิยม
+                </h2>
+                <a href="category.html?type=ranking" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="rankingSlider" data-slider="ranking">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="rankingGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="ranking"></div>
+        </section>
+
+        <!-- Classify Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-fire"></i> มาแรง
+                </h2>
+                <a href="category.html?type=classify" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="classifySlider" data-slider="classify">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="classifyGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="classify"></div>
+        </section>
+
+        <!-- Romance Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-heart"></i> โรแมนติก
+                </h2>
+                <a href="category.html?type=romance" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="romanceSlider" data-slider="romance">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="romanceGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="romance"></div>
+        </section>
+
+        <!-- CEO Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-briefcase"></i> ท่านประธาน
+                </h2>
+                <a href="category.html?type=ceo" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="ceoSlider" data-slider="ceo">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="ceoGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="ceo"></div>
+        </section>
+
+        <!-- Fantasy Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-wand-magic-sparkles"></i> แฟนตาซี
+                </h2>
+                <a href="category.html?type=fantasy" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="fantasySlider" data-slider="fantasy">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="fantasyGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="fantasy"></div>
+        </section>
+
+        <!-- Period Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-crown"></i> พีเรียด/ย้อนยุค
+                </h2>
+                <a href="category.html?type=period" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="periodSlider" data-slider="period">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="periodGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="period"></div>
+        </section>
+
+        <!-- Revenge Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-fist-raised"></i> แก้แค้น
+                </h2>
+                <a href="category.html?type=revenge" class="see-all-btn">
+                    ดูทั้งหมด <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="drama-slider" id="revengeSlider" data-slider="revenge">
+                <button class="slider-nav prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="drama-grid" id="revengeGrid"></div>
+                <button class="slider-nav next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-pagination" data-for="revenge"></div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav" id="bottomNav">
+        <a href="index.html" class="bottom-nav-item active" data-page="home">
+            <i class="fas fa-home"></i>
+            <span data-i18n="nav.home">หน้าแรก</span>
+        </a>
+        <a href="category.html?type=new" class="bottom-nav-item" data-page="new">
+            <i class="fas fa-star"></i>
+            <span data-i18n="nav.new">มาใหม่</span>
+        </a>
+        <a href="category.html?type=ranking" class="bottom-nav-item" data-page="ranking">
+            <i class="fas fa-trophy"></i>
+            <span data-i18n="nav.popular">ยอดนิยม</span>
+        </a>
+        <a href="history.html" class="bottom-nav-item" data-page="history">
+            <i class="fas fa-history"></i>
+            <span data-i18n="nav.history">ประวัติ</span>
+        </a>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/home.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
 </body>
 
 </html>

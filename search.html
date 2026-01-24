@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="ประวัติการดู - DramaPop">
+    <meta name="description" content="ค้นหาซีรี่ย์ออนไลน์ - DramaPop">
     <meta name="theme-color" content="#0a0a1a">
 
-    <title>ประวัติการดู - DramaPop</title>
+    <title>ค้นหา - DramaPop</title>
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -68,7 +68,7 @@
                 <a href="index.html" class="nav-link" data-page="home">
                     <i class="fas fa-home"></i> หน้าแรก
                 </a>
-                <a href="history.html" class="nav-link active" data-page="history">
+                <a href="history.html" class="nav-link" data-page="history">
                     <i class="fas fa-history"></i> ประวัติ
                 </a>
             </nav>
@@ -95,16 +95,15 @@
     </div>
 
     <!-- Main Content -->
-    <main class="history-page">
-        <div class="history-header">
-            <h1 class="history-title">
-                <i class="fas fa-history"></i> <span data-i18n="history.title">ประวัติการดู</span>
-            </h1>
-            <button class="clear-all-btn" id="clearAllHistory" style="display: none;">
-                <i class="fas fa-trash"></i> <span data-i18n="history.clearHistory">ลบทั้งหมด</span>
-            </button>
+    <main class="search-page">
+        <div class="search-page-header">
+            <h1 class="search-page-title">ผลการค้นหา: <span class="search-page-query" id="searchQuery"></span></h1>
+            <p class="search-results-count" id="searchCount"></p>
         </div>
-        <div class="history-list" id="historyResults"></div>
+        <div class="search-results" id="searchResults"></div>
+        <button class="load-more-btn" id="searchLoadMore" style="display: none;">
+            โหลดเพิ่มเติม <i class="fas fa-chevron-down"></i>
+        </button>
     </main>
 
     <!-- Bottom Navigation -->
@@ -121,7 +120,7 @@
             <i class="fas fa-trophy"></i>
             <span data-i18n="nav.popular">ยอดนิยม</span>
         </a>
-        <a href="history.html" class="bottom-nav-item active" data-page="history">
+        <a href="history.html" class="bottom-nav-item" data-page="history">
             <i class="fas fa-history"></i>
             <span data-i18n="nav.history">ประวัติ</span>
         </a>
@@ -130,7 +129,7 @@
     <script src="js/api.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/common.js"></script>
-    <script src="js/history.js"></script>
+    <script src="js/search.js"></script>
 
     <!-- Service Worker Registration -->
     <script>
