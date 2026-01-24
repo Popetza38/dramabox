@@ -8,5 +8,8 @@
     "dev": "node server.js"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
 }

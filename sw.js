@@ -84,6 +84,11 @@ self.addEventListener('fetch', event => {
     // Skip chrome-extension and other non-http(s) requests
     if (!url.protocol.startsWith('http')) return;
 
+    // Skip video files to avoid "Response body already used" errors
+    if (url.pathname.match(/\.(mp4|m3u8|ts|key|mov)$/i)) {
+        return;
+    }
+
     // API requests - Network first, then cache
     if (url.href.includes('dramabos.asia/api') || url.href.includes('/api/')) {
         event.respondWith(networkFirst(request));
